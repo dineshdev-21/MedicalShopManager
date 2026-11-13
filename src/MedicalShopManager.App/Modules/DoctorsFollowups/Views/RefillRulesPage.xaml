@@ -1,0 +1,131 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.DoctorsFollowups.Views.RefillRulesPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.DoctorsFollowups.ViewModels"
+             xmlns:local="clr-namespace:MedicalShopManager.App.Modules.DoctorsFollowups.Views"
+             mc:Ignorable="d"
+             local:DoctorsFollowupsFocus.KeyboardForm="True"
+             d:DataContext="{d:DesignInstance Type=vm:RefillRulesViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="DoctorsFollowupsStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="F2" Command="{Binding ToggleRemindCommand}"/>
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
+        <KeyBinding Key="S" Modifiers="Alt" Command="{Binding SaveRuleCommand}"/>
+        <KeyBinding Key="T" Modifiers="Alt" Command="{Binding SaveSettingsCommand}"/>
+        <KeyBinding Key="Escape" Command="{Binding BackCommand}"/>
+    </UserControl.InputBindings>
+
+    <DockPanel Margin="0,0,8,0">
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="Refresh (F5)" Style="{StaticResource SecondaryButton}" Command="{Binding RefreshCommand}" Margin="0,0,8,0"/>
+                <Button Content="Back to follow-ups (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding BackCommand}"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Text="Refill Rules" Style="{StaticResource PageTitle}" Margin="0"/>
+                <TextBlock Style="{StaticResource DfKeyHint}">
+                    <Run Text="{Binding RemindCount, Mode=OneWay}"/><Run Text=" listed item(s) create refill reminders when billed to a named customer  ·  F2 remind on / off  ·  Alt+S save rule  ·  Alt+T save settings"/>
+                </TextBlock>
+            </StackPanel>
+        </DockPanel>
+
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+            <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                       Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                       Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}"/>
+        </StackPanel>
+
+        <!-- Right: rule editor and settings -->
+        <StackPanel DockPanel.Dock="Right" Width="330" Margin="10,0,0,0">
+            <Border Style="{StaticResource CardStyle}" Padding="14,10" Margin="0,0,0,10">
+                <StackPanel>
+                    <TextBlock Text="{Binding SelectedTitle}" Style="{StaticResource DfSectionTitle}" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding SelectedDefaultLabel}" Style="{StaticResource DfKeyHint}" Margin="0,0,0,8"/>
+                    <StackPanel Style="{StaticResource DfField}">
+                        <TextBlock Text="REFILL REMINDERS" Style="{StaticResource DfLabel}"/>
+                        <ComboBox ItemsSource="{Binding RuleChoices}" SelectedItem="{Binding EditChoice}" DisplayMemberPath="Label" Height="30"
+                                  IsEnabled="{Binding HasSelection}"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource DfField}">
+                        <TextBlock Text="CONSUMPTION (UNITS PER DAY)" Style="{StaticResource DfLabel}"/>
+                        <TextBox Text="{Binding EditUnitsPerDay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfNumberInput}" MaxLength="6"
+                                 IsEnabled="{Binding HasSelection}" ToolTip="Blank = the default consumption below. 1 tablet twice a day = 2.">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding SaveRuleCommand}"/>
+                            </TextBox.InputBindings>
+                        </TextBox>
+                    </StackPanel>
+                    <Button Content="Save rule (Alt+S)" Style="{StaticResource PrimaryButton}" Command="{Binding SaveRuleCommand}" HorizontalAlignment="Left"/>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardStyle}" Padding="14,10">
+                <StackPanel>
+                    <TextBlock Text="Follow-up settings" Style="{StaticResource DfSectionTitle}"/>
+                    <StackPanel Style="{StaticResource DfField}">
+                        <TextBlock Text="DEFAULT CONSUMPTION (UNITS PER DAY)" Style="{StaticResource DfLabel}"/>
+                        <TextBox Text="{Binding DefaultUnitsPerDay, UpdateSourceTrigger=LostFocus, StringFormat=0.##}" Style="{StaticResource DfNumberInput}"
+                                 ToolTip="Used when neither the reminder nor the item's rule sets one"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource DfField}">
+                        <TextBlock Text="SHOW REMINDERS THIS MANY DAYS BEFORE DUE" Style="{StaticResource DfLabel}"/>
+                        <TextBox Text="{Binding UpcomingDays, UpdateSourceTrigger=LostFocus}" Style="{StaticResource DfNumberInput}" ToolTip="0 to 60 days"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource DfField}">
+                        <TextBlock Text="OVERDUE REMINDERS LAPSE AFTER (DAYS)" Style="{StaticResource DfLabel}"/>
+                        <TextBox Text="{Binding GraceDays, UpdateSourceTrigger=LostFocus}" Style="{StaticResource DfNumberInput}" ToolTip="0 to 90 days; lapsed reminders move to the Expired tab"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource DfField}">
+                        <TextBlock Text="SCAN BILLS OF THE LAST (DAYS)" Style="{StaticResource DfLabel}"/>
+                        <TextBox Text="{Binding LookbackDays, UpdateSourceTrigger=LostFocus}" Style="{StaticResource DfNumberInput}" ToolTip="7 to 730 days">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding SaveSettingsCommand}"/>
+                            </TextBox.InputBindings>
+                        </TextBox>
+                    </StackPanel>
+                    <ItemsControl ItemsSource="{Binding SettingsErrors}" Style="{StaticResource DfErrorList}" IsTabStop="False"
+                                  Visibility="{Binding HasSettingsErrors, Converter={StaticResource BoolToVisibility}}"/>
+                    <Button Content="Save settings (Alt+T)" Style="{StaticResource SecondaryButton}" Command="{Binding SaveSettingsCommand}" HorizontalAlignment="Left"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+            <CheckBox DockPanel.Dock="Right" Content="Only items that remind" IsChecked="{Binding ChronicOnly}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfInput}" Height="32"
+                     ToolTip="Search by composition (salt) or medicine name"/>
+        </DockPanel>
+
+        <Border Style="{StaticResource CardStyle}" Padding="0">
+            <Grid>
+                <DataGrid ItemsSource="{Binding Rules}" SelectedItem="{Binding SelectedRule}" Style="{StaticResource ModernDataGrid}"
+                          AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
+                    <DataGrid.InputBindings>
+                        <KeyBinding Key="Space" Command="{Binding ToggleRemindCommand}"/>
+                        <MouseBinding Gesture="LeftDoubleClick" Command="{Binding ToggleRemindCommand}"/>
+                    </DataGrid.InputBindings>
+                    <DataGrid.Columns>
+                        <DataGridCheckBoxColumn Header="REMIND" Binding="{Binding IsChronic, Mode=OneWay}" Width="70"/>
+                        <DataGridTextColumn Header="COMPOSITION / MEDICINE" Binding="{Binding Name}" Width="2*" FontWeight="SemiBold"/>
+                        <DataGridTextColumn Header="TYPE" Binding="{Binding Kind}" Width="100"/>
+                        <DataGridTextColumn Header="DETAIL" Binding="{Binding Detail}" Width="1.4*"/>
+                        <DataGridTextColumn Header="CONSUMPTION" Binding="{Binding ConsumptionLabel}" Width="110"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="{Binding EmptyTitle}" Style="{StaticResource DfEmptyTitle}"/>
+                    <TextBlock Text="{Binding EmptyHint}" Style="{StaticResource DfEmptyHint}" MaxWidth="460" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </DockPanel>
+</UserControl>

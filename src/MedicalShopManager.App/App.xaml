@@ -1,0 +1,25 @@
+<Application x:Class="MedicalShopManager.App.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:MedicalShopManager.App.Converters"
+             xmlns:nav="clr-namespace:MedicalShopManager.App.Navigation">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/Theme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Value Converters -->
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+            <converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
+            <converters:NullToVisibilityConverter x:Key="NullToVisibility"/>
+            <converters:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibility"/>
+            <converters:CountToVisibilityConverter x:Key="CountToVisibility"/>
+            <converters:PaisaToRupeesConverter x:Key="PaisaToRupees"/>
+
+            <!-- Convention-based ViewModel → View resolution (FooViewModel → FooPage / FooView) -->
+            <nav:ViewLocator x:Key="ViewLocator"/>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

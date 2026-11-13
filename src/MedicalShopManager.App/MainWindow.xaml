@@ -1,0 +1,101 @@
+<Window x:Class="MedicalShopManager.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:nav="clr-namespace:MedicalShopManager.App.Navigation"
+        Title="Medical Shop Manager" 
+        Icon="Resources/app.ico"
+        Width="1400" Height="900"
+        MinWidth="1100" MinHeight="700"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
+        Background="{StaticResource BackgroundBrush}">
+
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <!-- Sidebar -->
+            <ColumnDefinition Width="240"/>
+            <!-- Content -->
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ═══════════════ SIDEBAR ═══════════════ -->
+        <Border Grid.Column="0" 
+                Background="{StaticResource SidebarBrush}" 
+                BorderBrush="{StaticResource BorderBrush}" 
+                BorderThickness="0,0,1,0">
+            <DockPanel>
+                <!-- App Header -->
+                <Border DockPanel.Dock="Top" Padding="16,16,16,12">
+                    <StackPanel>
+                        <TextBlock Text="💊" FontSize="28" Margin="0,0,0,6"/>
+                        <TextBlock Text="{Binding ShopName}" 
+                                   FontSize="{StaticResource FontSizeSubtitle}" 
+                                   FontWeight="SemiBold" 
+                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                   TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="Pharmacy Management" 
+                                   FontSize="{StaticResource FontSizeCaption}" 
+                                   Foreground="{StaticResource TextTertiaryBrush}"
+                                   Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource DividerBrush}" Margin="12,0"/>
+
+                <!-- Sync Status (bottom) -->
+                <Border DockPanel.Dock="Bottom" Padding="12,8" Background="#F8F8F8">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <Ellipse Width="8" Height="8" Fill="{StaticResource SuccessBrush}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding SyncStatus}" 
+                                       FontSize="{StaticResource FontSizeCaption}" 
+                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                        <TextBlock FontSize="{StaticResource FontSizeCaption}" 
+                                   Foreground="{StaticResource TextTertiaryBrush}">
+                            <Run Text="👤"/>
+                            <Run Text="{Binding CurrentUserDisplay, Mode=OneWay}"/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <Border DockPanel.Dock="Bottom" Height="1" Background="{StaticResource DividerBrush}" Margin="12,0"/>
+
+                <!-- Navigation Items: built from INavigationRegistry (modules register pages; never list them here) -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="8,8">
+                    <ItemsControl ItemsSource="{Binding NavGroups}" Focusable="False">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type nav:NavGroupViewModel}">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Header}" FontSize="10" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextTertiaryBrush}"
+                                               Margin="12,12,0,4"/>
+                                    <ItemsControl ItemsSource="{Binding Entries}" Focusable="False">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="{x:Type nav:NavEntryViewModel}">
+                                                <RadioButton Style="{StaticResource NavButton}"
+                                                             Content="{Binding Title}"
+                                                             Tag="{Binding IconGlyph}"
+                                                             ToolTip="{Binding ToolTip}"
+                                                             IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                             Command="{Binding DataContext.NavigateToCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                             CommandParameter="{Binding Key}"/>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+        <!-- ═══════════════ CONTENT AREA ═══════════════ -->
+        <Border Grid.Column="1" Padding="{StaticResource PagePadding}">
+            <!-- ViewLocator maps FooViewModel to FooPage by convention (App.xaml resource) -->
+            <ContentControl Content="{Binding ActiveViewModel}" ContentTemplateSelector="{StaticResource ViewLocator}" Focusable="False"/>
+        </Border>
+    </Grid>
+</Window>

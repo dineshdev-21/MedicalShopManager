@@ -1,0 +1,145 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.Purchases.Views.PurchaseImportPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.Purchases.ViewModels"
+             xmlns:local="clr-namespace:MedicalShopManager.App.Modules.Purchases.Views"
+             mc:Ignorable="d"
+             local:PurchasesFocus.KeyboardForm="True"
+             d:DataContext="{d:DesignInstance Type=vm:PurchaseImportViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="PurchasesStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="F5" Command="{Binding PreviewCommand}"/>
+        <KeyBinding Key="S" Modifiers="Alt" Command="{Binding CreateDraftCommand}"/>
+    </UserControl.InputBindings>
+
+    <DockPanel Margin="0,0,8,0">
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+            <TextBlock Text="Import Purchase Bill (CSV / Excel)" Style="{StaticResource PageTitle}" Margin="0"/>
+            <TextBlock FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"
+                       Text="Stop adding purchase bills manually: export the bill from the distributor's software, map its columns once (saved per distributor), and review the rows on the purchase screen before saving."/>
+        </StackPanel>
+
+        <Border DockPanel.Dock="Top" Style="{StaticResource CardStyle}" Padding="12,8" Margin="0,0,0,10">
+            <WrapPanel>
+                <StackPanel Style="{StaticResource PurchaseField}" Width="260">
+                    <TextBlock Text="DISTRIBUTOR *" Style="{StaticResource PurchaseLabel}"/>
+                    <ComboBox ItemsSource="{Binding Suppliers}" SelectedItem="{Binding SelectedSupplier}" DisplayMemberPath="Name" Height="30" IsTextSearchEnabled="True"/>
+                </StackPanel>
+                <StackPanel Style="{StaticResource PurchaseField}" Width="150">
+                    <TextBlock Text="INVOICE NO *" Style="{StaticResource PurchaseLabel}"/>
+                    <TextBox Text="{Binding InvoiceNumber}" Style="{StaticResource PurchaseInput}" MaxLength="30"/>
+                </StackPanel>
+                <StackPanel Style="{StaticResource PurchaseField}" Width="140">
+                    <TextBlock Text="INVOICE DATE *" Style="{StaticResource PurchaseLabel}"/>
+                    <DatePicker SelectedDate="{Binding InvoiceDate}" Height="30"/>
+                </StackPanel>
+                <StackPanel Style="{StaticResource PurchaseField}">
+                    <TextBlock Text="FILE" Style="{StaticResource PurchaseLabel}"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Attach CSV / Excel file (Ctrl+O)" Style="{StaticResource SecondaryButton}" Click="OnBrowseClick" Height="30" Padding="12,0" Margin="0,0,8,0"/>
+                        <TextBlock Text="{Binding FileSummary}" VerticalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+            </WrapPanel>
+        </Border>
+
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                <Button Content="Preview rows (F5)" Style="{StaticResource SecondaryButton}" Command="{Binding PreviewCommand}" Margin="0,0,8,0"/>
+                <Button Content="Create purchase draft (Alt+S)" Style="{StaticResource PrimaryButton}" Command="{Binding CreateDraftCommand}"/>
+            </StackPanel>
+            <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                       Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                       Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}"/>
+            <ScrollViewer MaxHeight="110" VerticalScrollBarVisibility="Auto" Visibility="{Binding HasErrors, Converter={StaticResource BoolToVisibility}}">
+                <ItemsControl ItemsSource="{Binding Errors}" Style="{StaticResource PurchaseErrorList}"/>
+            </ScrollViewer>
+        </StackPanel>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="380"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Column mapping -->
+            <Border Style="{StaticResource CardStyle}" Padding="10" Margin="0,0,10,0">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="COLUMN MAPPING" Style="{StaticResource PurchaseLabel}" Margin="0,0,0,6"/>
+                    <Grid>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding Columns}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="170"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel VerticalAlignment="Center" Margin="0,0,6,0">
+                                                <TextBlock Text="{Binding Header}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding Sample, StringFormat='e.g. {0}'}" FontSize="11" Foreground="{StaticResource TextTertiaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                            <ComboBox Grid.Column="1" Height="28" SelectedValuePath="Value" DisplayMemberPath="Label"
+                                                      ItemsSource="{Binding DataContext.FieldOptions, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                      SelectedValue="{Binding Field}"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                        <TextBlock Text="Attach the distributor's bill file to map its columns.&#x0a;Needed: product, batch, expiry, qty, MRP, rate."
+                                   Style="{StaticResource PurchaseEmptyHint}" VerticalAlignment="Center"
+                                   Visibility="{Binding HasFile, Converter={StaticResource InverseBoolToVisibility}}"/>
+                    </Grid>
+                </DockPanel>
+            </Border>
+
+            <!-- Preview -->
+            <Border Grid.Column="1" Style="{StaticResource CardStyle}" Padding="0">
+                <Grid>
+                    <DataGrid ItemsSource="{Binding PreviewRows}" Style="{StaticResource ModernDataGrid}" AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ROW" Binding="{Binding RowNumber}" Width="45"/>
+                            <DataGridTextColumn Header="PRODUCT" Binding="{Binding ProductName}" Width="2*"/>
+                            <DataGridTextColumn Header="BATCH" Binding="{Binding BatchNumber}" Width="90"/>
+                            <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryDate, StringFormat=MM/yy}" Width="60"/>
+                            <DataGridTextColumn Header="PACK" Binding="{Binding UnitsPerPack}" Width="50"/>
+                            <DataGridTextColumn Header="QTY" Binding="{Binding QuantityPacks, StringFormat=0.##}" Width="50"/>
+                            <DataGridTextColumn Header="FREE" Binding="{Binding FreePacks, StringFormat=0.##}" Width="50"/>
+                            <DataGridTextColumn Header="MRP" Binding="{Binding MrpPaisa, Converter={StaticResource PaisaToRupees}}" Width="80"/>
+                            <DataGridTextColumn Header="RATE" Binding="{Binding RatePaisa, Converter={StaticResource PaisaToRupees}}" Width="80"/>
+                            <DataGridTextColumn Header="GST %" Binding="{Binding GstPercent, StringFormat=0.##}" Width="50"/>
+                            <DataGridTemplateColumn Header="PROBLEMS" Width="2*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <ItemsControl ItemsSource="{Binding Errors}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding}" Foreground="{StaticResource DangerBrush}" FontSize="11" TextWrapping="Wrap"/>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding HasPreview, Converter={StaticResource InverseBoolToVisibility}}">
+                        <TextBlock Text="Nothing to preview yet" Style="{StaticResource PurchaseEmptyTitle}"/>
+                        <TextBlock Text="Attach the file, check the mapping, then press F5." Style="{StaticResource PurchaseEmptyHint}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </DockPanel>
+</UserControl>

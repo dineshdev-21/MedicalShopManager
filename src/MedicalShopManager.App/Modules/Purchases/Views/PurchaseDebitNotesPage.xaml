@@ -1,0 +1,127 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.Purchases.Views.PurchaseDebitNotesPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.Purchases.ViewModels"
+             xmlns:local="clr-namespace:MedicalShopManager.App.Modules.Purchases.Views"
+             mc:Ignorable="d"
+             local:PurchasesFocus.KeyboardForm="True"
+             d:DataContext="{d:DesignInstance Type=vm:PurchaseDebitNotesViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="PurchasesStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="F2" Command="{Binding NewCommand}"/>
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
+        <KeyBinding Key="P" Modifiers="Control" Command="{Binding PrintCommand}"/>
+    </UserControl.InputBindings>
+
+    <Grid>
+        <DockPanel Margin="0,0,8,0">
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="Print (Ctrl+P)" Style="{StaticResource SecondaryButton}" Command="{Binding PrintCommand}" Margin="0,0,8,0"/>
+                    <Button Content="Cancel debit note" Style="{StaticResource DangerButton}" Command="{Binding AskCancelCommand}" Margin="0,0,8,0"/>
+                    <Button Content="+ Return Purchase (F2)" Style="{StaticResource PrimaryButton}" Command="{Binding NewCommand}"/>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="Purchase Returns (Debit Notes)" Style="{StaticResource PageTitle}" Margin="0"/>
+                    <TextBlock FontSize="12" Foreground="{StaticResource TextSecondaryBrush}">
+                        <Run Text="Total of active debit notes: "/><Run Text="{Binding TotalPaisa, Mode=OneWay, Converter={StaticResource PaisaToRupees}}" FontWeight="SemiBold"/>
+                    </TextBlock>
+                </StackPanel>
+            </DockPanel>
+
+            <Border DockPanel.Dock="Top" Style="{StaticResource CardStyle}" Padding="12,8" Margin="0,0,0,10">
+                <WrapPanel>
+                    <StackPanel Style="{StaticResource PurchaseField}" Width="140">
+                        <TextBlock Text="FROM" Style="{StaticResource PurchaseLabel}"/>
+                        <DatePicker SelectedDate="{Binding FromDate}" Height="30"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource PurchaseField}" Width="140">
+                        <TextBlock Text="TO" Style="{StaticResource PurchaseLabel}"/>
+                        <DatePicker SelectedDate="{Binding ToDate}" Height="30"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource PurchaseField}" Width="260">
+                        <TextBlock Text="DISTRIBUTOR" Style="{StaticResource PurchaseLabel}"/>
+                        <ComboBox ItemsSource="{Binding SupplierOptions}" SelectedItem="{Binding SelectedSupplier}" DisplayMemberPath="Label" Height="30"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource PurchaseField}">
+                        <TextBlock Text=" " Style="{StaticResource PurchaseLabel}"/>
+                        <Button Content="Apply (F5)" Style="{StaticResource SecondaryButton}" Command="{Binding RefreshCommand}" Height="30" Padding="12,0"/>
+                    </StackPanel>
+                </WrapPanel>
+            </Border>
+
+            <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold"
+                           Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                           Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}"/>
+            </StackPanel>
+
+            <Border DockPanel.Dock="Bottom" Style="{StaticResource CardStyle}" Padding="0" Margin="0,10,0,0" Height="170">
+                <DataGrid ItemsSource="{Binding SelectedLines}" Style="{StaticResource ModernDataGrid}" AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="PRODUCT" Binding="{Binding MedicineName}" Width="2*"/>
+                        <DataGridTextColumn Header="BATCH" Binding="{Binding BatchNumber}" Width="90"/>
+                        <DataGridTextColumn Header="EXP" Binding="{Binding ExpiryLabel}" Width="55"/>
+                        <DataGridTextColumn Header="QTY" Binding="{Binding QuantityDisplay}" Width="60"/>
+                        <DataGridTextColumn Header="RATE" Binding="{Binding RatePaisa, Converter={StaticResource PaisaToRupees}}" Width="85"/>
+                        <DataGridTextColumn Header="TAXABLE" Binding="{Binding TaxablePaisa, Converter={StaticResource PaisaToRupees}}" Width="95"/>
+                        <DataGridTextColumn Header="GST %" Binding="{Binding GstRatePercent, StringFormat=0.##}" Width="55"/>
+                        <DataGridTextColumn Header="AMOUNT" Binding="{Binding LineTotalPaisa, Converter={StaticResource PaisaToRupees}}" Width="95"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <Border Style="{StaticResource CardStyle}" Padding="0">
+                <Grid>
+                    <DataGrid ItemsSource="{Binding Notes}" SelectedItem="{Binding SelectedNote}" Style="{StaticResource ModernDataGrid}"
+                              RowStyle="{StaticResource PurchaseStatusRow}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="DATE" Binding="{Binding ReturnDate, StringFormat=dd-MM-yyyy}" Width="90"/>
+                            <DataGridTextColumn Header="DEBIT NOTE NO" Binding="{Binding ReturnNumber}" Width="130"/>
+                            <DataGridTextColumn Header="TYPE" Binding="{Binding KindLabel}" Width="110"/>
+                            <DataGridTextColumn Header="DISTRIBUTOR" Binding="{Binding SupplierName}" Width="2*"/>
+                            <DataGridTextColumn Header="AGAINST BILL" Binding="{Binding PurchaseReference}" Width="120"/>
+                            <DataGridTextColumn Header="REASON" Binding="{Binding ReasonLabel}" Width="120"/>
+                            <DataGridTextColumn Header="ITEMS" Binding="{Binding ItemCount}" Width="55"/>
+                            <DataGridTextColumn Header="GST" Binding="{Binding TaxAmountPaisa, Converter={StaticResource PaisaToRupees}}" Width="85"/>
+                            <DataGridTextColumn Header="AMOUNT" Binding="{Binding NetAmountPaisa, Converter={StaticResource PaisaToRupees}}" Width="100" FontWeight="SemiBold"/>
+                            <DataGridTextColumn Header="REFUND" Binding="{Binding RefundReceivedPaisa, Converter={StaticResource PaisaToRupees}}" Width="90"/>
+                            <DataGridTextColumn Header="STATUS" Binding="{Binding StatusLabel}" Width="110"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="No debit notes in this period" Style="{StaticResource PurchaseEmptyTitle}"/>
+                        <TextBlock Text="Press F2 to return goods to a distributor (Ctrl+Alt+R from anywhere)." Style="{StaticResource PurchaseEmptyHint}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DockPanel>
+
+        <Grid Style="{StaticResource PurchaseOverlay}" Visibility="{Binding IsCancelDialogOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource PurchaseDialogCard}" Width="460" local:PurchasesFocus.FocusFirstOnShow="True">
+                <Border.InputBindings>
+                    <KeyBinding Key="Escape" Command="{Binding CloseCancelDialogCommand}"/>
+                </Border.InputBindings>
+                <StackPanel>
+                    <TextBlock Text="Cancel this debit note?" Style="{StaticResource SectionHeader}"/>
+                    <TextBlock TextWrapping="Wrap" Margin="0,6,0,14" Foreground="{StaticResource TextSecondaryBrush}">
+                        <Run Text="{Binding SelectedNote.ReturnNumber, Mode=OneWay}" FontWeight="SemiBold"/><Run Text=": the returned units go back into stock and the amount no longer reduces what you owe the distributor."/>
+                    </TextBlock>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Keep it (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding CloseCancelDialogCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Cancel debit note" Style="{StaticResource DangerButton}" Command="{Binding CancelNoteCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

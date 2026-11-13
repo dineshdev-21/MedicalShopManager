@@ -1,0 +1,164 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.Finance.Views.FinanceVouchersPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.Finance.ViewModels"
+             xmlns:local="clr-namespace:MedicalShopManager.App.Modules.Finance.Views"
+             mc:Ignorable="d"
+             local:FinanceFocus.KeyboardForm="True"
+             d:DataContext="{d:DesignInstance Type=vm:FinanceVouchersViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="FinanceStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
+        <KeyBinding Key="P" Modifiers="Control" Command="{Binding PrintCommand}"/>
+        <KeyBinding Key="F2" Command="{Binding PreviewCommand}"/>
+        <KeyBinding Key="R" Modifiers="Alt" Command="{Binding NewReceiptCommand}"/>
+        <KeyBinding Key="P" Modifiers="Alt" Command="{Binding NewPaymentCommand}"/>
+        <KeyBinding Key="L" Modifiers="Control" Command="{Binding OpenLedgerCommand}"/>
+        <KeyBinding Key="Delete" Command="{Binding BeginCancelCommand}"/>
+        <KeyBinding Key="Escape" Command="{Binding CloseDialogsCommand}"/>
+    </UserControl.InputBindings>
+
+    <Grid>
+        <DockPanel Margin="0,0,8,0">
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="Today" Style="{StaticResource SecondaryButton}" Command="{Binding TodayCommand}" Margin="0,0,6,0"/>
+                    <Button Content="This month" Style="{StaticResource SecondaryButton}" Command="{Binding ThisMonthCommand}" Margin="0,0,6,0"/>
+                    <Button Content="Pay supplier (Alt+P)" Style="{StaticResource SecondaryButton}" Command="{Binding NewPaymentCommand}" Margin="0,0,6,0"/>
+                    <Button Content="Receive payment (Alt+R)" Style="{StaticResource PrimaryButton}" Command="{Binding NewReceiptCommand}"/>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="Payments In / Out" Style="{StaticResource PageTitle}" Margin="0"/>
+                    <TextBlock Text="Receipts from customers and payments to suppliers with the bills they settled." Style="{StaticResource FinKeyHint}"/>
+                    <TextBlock Text="Enter / F2 preview  ·  Ctrl+P print  ·  Del cancel  ·  Ctrl+L party ledger  ·  F5 refresh" Style="{StaticResource FinKeyHint}"/>
+                </StackPanel>
+            </DockPanel>
+
+            <Border DockPanel.Dock="Top" Style="{StaticResource CardStyle}" Padding="12,8" Margin="0,0,0,10">
+                <WrapPanel>
+                    <StackPanel Style="{StaticResource FinField}" Width="250">
+                        <TextBlock Text="SEARCH NUMBER / PARTY / REF / CHEQUE" Style="{StaticResource FinLabel}"/>
+                        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FinInput}" ToolTip="Searches all dates. Press Enter.">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding RefreshCommand}"/>
+                            </TextBox.InputBindings>
+                        </TextBox>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource FinField}" Width="135">
+                        <TextBlock Text="FROM" Style="{StaticResource FinLabel}"/>
+                        <DatePicker SelectedDate="{Binding FromDate}" Height="30"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource FinField}" Width="135">
+                        <TextBlock Text="TO" Style="{StaticResource FinLabel}"/>
+                        <DatePicker SelectedDate="{Binding ToDate}" Height="30"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource FinField}" Width="210">
+                        <TextBlock Text="SHOW" Style="{StaticResource FinLabel}"/>
+                        <ComboBox ItemsSource="{Binding KindFilters}" SelectedItem="{Binding SelectedKind}" DisplayMemberPath="Label" Height="30"/>
+                    </StackPanel>
+                    <CheckBox Content="Include cancelled / bounced" IsChecked="{Binding IncludeReversed}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                </WrapPanel>
+            </Border>
+
+            <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                           Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                           Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}"/>
+                <Border Style="{StaticResource CardStyle}" Padding="14,8" Margin="0,4,0,0">
+                    <WrapPanel>
+                        <StackPanel Style="{StaticResource FinFooterItem}">
+                            <TextBlock Text="ACTIVE ENTRIES" Style="{StaticResource FinLabel}"/>
+                            <TextBlock Text="{Binding ActiveCount}" Style="{StaticResource FinValue}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinFooterItem}">
+                            <TextBlock Text="RECEIVED (IN)" Style="{StaticResource FinLabel}"/>
+                            <TextBlock Text="{Binding ReceivedPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource FinValue}" Foreground="{StaticResource SuccessBrush}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinFooterItem}">
+                            <TextBlock Text="PAID (OUT)" Style="{StaticResource FinLabel}"/>
+                            <TextBlock Text="{Binding PaidPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource FinValue}" Foreground="{StaticResource DangerBrush}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinFooterItem}">
+                            <TextBlock Text="NET" Style="{StaticResource FinLabel}"/>
+                            <TextBlock Text="{Binding NetPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource FinValue}"/>
+                        </StackPanel>
+                    </WrapPanel>
+                </Border>
+            </StackPanel>
+
+            <Border Style="{StaticResource CardStyle}" Padding="0">
+                <Grid>
+                    <DataGrid ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" Style="{StaticResource ModernDataGrid}"
+                              RowStyle="{StaticResource FinStatusRow}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
+                        <DataGrid.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding PreviewCommand}"/>
+                            <MouseBinding Gesture="LeftDoubleClick" Command="{Binding PreviewCommand}"/>
+                        </DataGrid.InputBindings>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="NUMBER" Binding="{Binding VoucherNumber}" Width="125" FontWeight="SemiBold"/>
+                            <DataGridTextColumn Header="DATE" Binding="{Binding VoucherDate, StringFormat=dd-MM-yy}" Width="75"/>
+                            <DataGridTextColumn Header="TYPE" Binding="{Binding KindLabel}" Width="95"/>
+                            <DataGridTextColumn Header="PARTY" Binding="{Binding PartyName}" Width="1.5*"/>
+                            <DataGridTextColumn Header="MODE" Binding="{Binding ModeLabel}" Width="90"/>
+                            <DataGridTextColumn Header="ACCOUNT / CHEQUE" Binding="{Binding AccountName}" Width="120"/>
+                            <DataGridTextColumn Header="CHEQUE NO" Binding="{Binding ChequeNumber}" Width="80"/>
+                            <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountPaisa, Converter={StaticResource PaisaToRupees}}" Width="100" FontWeight="SemiBold"/>
+                            <DataGridTextColumn Header="AGAINST" Binding="{Binding AllocationSummary}" Width="1.5*"/>
+                            <DataGridTextColumn Header="STATUS" Binding="{Binding StatusLabel}" Width="100"/>
+                            <DataGridTemplateColumn Header="ACTIONS" Width="140">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Content="Print" Style="{StaticResource SecondaryButton}" Padding="8,2" Margin="0,0,4,0" Focusable="False"
+                                                    Command="{Binding DataContext.PrintCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                            <Button Content="Cancel" Style="{StaticResource DangerButton}" Padding="8,2" Focusable="False"
+                                                    Visibility="{Binding IsActive, Converter={StaticResource BoolToVisibility}}"
+                                                    Command="{Binding DataContext.BeginCancelCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="No receipts or payments" Style="{StaticResource FinEmptyTitle}"/>
+                        <TextBlock Text="Alt+R records money received from a customer; Alt+P records a payment to a supplier."
+                                   Style="{StaticResource FinEmptyHint}" MaxWidth="420"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DockPanel>
+
+        <Grid Style="{StaticResource FinOverlay}" Visibility="{Binding IsCancelDialogOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource FinDialogCard}" Width="480" local:FinanceFocus.FocusFirstOnShow="True">
+                <StackPanel>
+                    <TextBlock Text="Cancel receipt / payment" Style="{StaticResource SectionHeader}" Margin="0,0,0,6"/>
+                    <TextBlock Text="{Binding CancelTarget}" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                    <TextBlock Text="The bills it settled become due again and the money is taken back out of the account. A pending cheque is cancelled too."
+                               TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,10"/>
+                    <TextBlock Text="REASON *" Style="{StaticResource FinLabel}"/>
+                    <TextBox Text="{Binding CancelReason, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FinInput}" MaxLength="250">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding ConfirmCancelCommand}"/>
+                        </TextBox.InputBindings>
+                    </TextBox>
+                    <ItemsControl ItemsSource="{Binding DialogErrors}" Style="{StaticResource FinErrorList}"
+                                  Visibility="{Binding HasDialogErrors, Converter={StaticResource BoolToVisibility}}"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <Button Content="Keep (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding CloseDialogsCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Cancel it" Style="{StaticResource DangerButton}" Command="{Binding ConfirmCancelCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

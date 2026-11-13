@@ -1,0 +1,112 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.Finance.Views.FinanceAccountStatementPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.Finance.ViewModels"
+             xmlns:local="clr-namespace:MedicalShopManager.App.Modules.Finance.Views"
+             mc:Ignorable="d"
+             local:FinanceFocus.KeyboardForm="True"
+             d:DataContext="{d:DesignInstance Type=vm:FinanceAccountStatementViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="FinanceStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
+        <KeyBinding Key="E" Modifiers="Control" Command="{Binding ExportCommand}"/>
+        <KeyBinding Key="P" Modifiers="Control" Command="{Binding PrintCommand}"/>
+        <KeyBinding Key="F2" Command="{Binding PreviewCommand}"/>
+    </UserControl.InputBindings>
+
+    <DockPanel Margin="0,0,8,0">
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="This month" Style="{StaticResource SecondaryButton}" Command="{Binding ThisMonthCommand}" Margin="0,0,6,0"/>
+                <Button Content="Last month" Style="{StaticResource SecondaryButton}" Command="{Binding LastMonthCommand}" Margin="0,0,6,0"/>
+                <Button Content="This FY" Style="{StaticResource SecondaryButton}" Command="{Binding ThisYearCommand}" Margin="0,0,6,0"/>
+                <Button Content="Export (Ctrl+E)" Style="{StaticResource SecondaryButton}" Command="{Binding ExportCommand}" Margin="0,0,6,0"/>
+                <Button Content="Preview (F2)" Style="{StaticResource SecondaryButton}" Command="{Binding PreviewCommand}" Margin="0,0,6,0"/>
+                <Button Content="Print (Ctrl+P)" Style="{StaticResource PrimaryButton}" Command="{Binding PrintCommand}"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Text="{Binding Heading}" Style="{StaticResource PageTitle}" Margin="0"/>
+                <TextBlock Text="Every movement of the account with the running balance. F5 refresh  ·  Ctrl+E export  ·  Ctrl+P print"
+                           Style="{StaticResource FinKeyHint}"/>
+            </StackPanel>
+        </DockPanel>
+
+        <Border DockPanel.Dock="Top" Style="{StaticResource CardStyle}" Padding="12,8" Margin="0,0,0,10">
+            <WrapPanel>
+                <StackPanel Style="{StaticResource FinField}" Width="260">
+                    <TextBlock Text="ACCOUNT" Style="{StaticResource FinLabel}"/>
+                    <ComboBox ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedAccount}" DisplayMemberPath="DisplayName" Height="30"/>
+                </StackPanel>
+                <StackPanel Style="{StaticResource FinField}" Width="135">
+                    <TextBlock Text="FROM" Style="{StaticResource FinLabel}"/>
+                    <DatePicker SelectedDate="{Binding FromDate}" Height="30"/>
+                </StackPanel>
+                <StackPanel Style="{StaticResource FinField}" Width="135">
+                    <TextBlock Text="TO" Style="{StaticResource FinLabel}"/>
+                    <DatePicker SelectedDate="{Binding ToDate}" Height="30"/>
+                </StackPanel>
+                <StackPanel Style="{StaticResource FinField}" Width="260">
+                    <TextBlock Text="FIND IN STATEMENT (REF / PARTY / DETAILS)" Style="{StaticResource FinLabel}"/>
+                    <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FinInput}"/>
+                </StackPanel>
+            </WrapPanel>
+        </Border>
+
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+            <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                       Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                       Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}"/>
+            <Border Style="{StaticResource CardStyle}" Padding="14,8" Margin="0,4,0,0">
+                <WrapPanel>
+                    <StackPanel Style="{StaticResource FinFooterItem}">
+                        <TextBlock Text="OPENING BALANCE" Style="{StaticResource FinLabel}"/>
+                        <TextBlock Text="{Binding OpeningPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource FinValue}"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource FinFooterItem}">
+                        <TextBlock Text="MONEY IN" Style="{StaticResource FinLabel}"/>
+                        <TextBlock Text="{Binding TotalInPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource FinValue}" Foreground="{StaticResource SuccessBrush}"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource FinFooterItem}">
+                        <TextBlock Text="MONEY OUT" Style="{StaticResource FinLabel}"/>
+                        <TextBlock Text="{Binding TotalOutPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource FinValue}" Foreground="{StaticResource DangerBrush}"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource FinFooterItem}">
+                        <TextBlock Text="CLOSING BALANCE" Style="{StaticResource FinLabel}"/>
+                        <TextBlock Text="{Binding ClosingPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource FinValue}" Foreground="{StaticResource PrimaryBrush}"/>
+                    </StackPanel>
+                </WrapPanel>
+            </Border>
+        </StackPanel>
+
+        <Border Style="{StaticResource CardStyle}" Padding="0">
+            <Grid>
+                <DataGrid ItemsSource="{Binding Lines}" Style="{StaticResource ModernDataGrid}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="DATE" Binding="{Binding Date, StringFormat=dd-MM-yy}" Width="80"/>
+                        <DataGridTextColumn Header="TYPE" Binding="{Binding SourceLabel}" Width="120"/>
+                        <DataGridTextColumn Header="REFERENCE" Binding="{Binding Reference}" Width="130" FontWeight="SemiBold"/>
+                        <DataGridTextColumn Header="PARTY" Binding="{Binding PartyName}" Width="1.3*"/>
+                        <DataGridTextColumn Header="DETAILS" Binding="{Binding Description}" Width="2*"/>
+                        <DataGridTextColumn Header="IN" Binding="{Binding InPaisa, Converter={StaticResource PaisaToRupees}}" Width="100"/>
+                        <DataGridTextColumn Header="OUT" Binding="{Binding OutPaisa, Converter={StaticResource PaisaToRupees}}" Width="100"/>
+                        <DataGridTextColumn Header="BALANCE" Binding="{Binding BalancePaisa, Converter={StaticResource PaisaToRupees}}" Width="115" FontWeight="SemiBold"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="No entries in this period" Style="{StaticResource FinEmptyTitle}"/>
+                    <TextBlock Text="Choose another account or widen the dates. The opening and closing balances are shown below."
+                               Style="{StaticResource FinEmptyHint}" MaxWidth="420"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </DockPanel>
+</UserControl>

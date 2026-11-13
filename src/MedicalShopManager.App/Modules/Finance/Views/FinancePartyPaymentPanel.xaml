@@ -1,0 +1,211 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.Finance.Views.FinancePartyPaymentPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.Finance.ViewModels"
+             xmlns:local="clr-namespace:MedicalShopManager.App.Modules.Finance.Views"
+             mc:Ignorable="d"
+             local:FinanceFocus.KeyboardForm="True"
+             d:DataContext="{d:DesignInstance Type=vm:FinancePartyPaymentViewModel}">
+    <!-- Shared by FinanceReceivePaymentPage and FinancePaySupplierPage (the ViewModel decides receipt or payment). -->
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="FinanceStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="S" Modifiers="Alt" Command="{Binding SaveCommand}"/>
+        <KeyBinding Key="P" Modifiers="Control" Command="{Binding SaveAndPrintCommand}"/>
+        <KeyBinding Key="F4" Command="{Binding PayFullDueCommand}"/>
+        <KeyBinding Key="L" Modifiers="Control" Command="{Binding OpenLedgerCommand}"/>
+    </UserControl.InputBindings>
+
+    <DockPanel Margin="0,0,8,0">
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="Register" Style="{StaticResource SecondaryButton}" Command="{Binding OpenRegisterCommand}" Margin="0,0,6,0"/>
+                <Button Content="Ledger (Ctrl+L)" Style="{StaticResource SecondaryButton}" Command="{Binding OpenLedgerCommand}" Margin="0,0,6,0"/>
+                <Button Content="Reprint last" Style="{StaticResource SecondaryButton}" Command="{Binding PrintLastCommand}" Margin="0,0,6,0"
+                        Visibility="{Binding HasLastVoucher, Converter={StaticResource BoolToVisibility}}"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Style="{StaticResource PageTitle}" Margin="0">
+                    <Run Text="{Binding Title, Mode=OneWay}"/><Run Text="   "/><Run Text="{Binding NextNumber, Mode=OneWay}" FontSize="13" Foreground="{StaticResource TextTertiaryBrush}"/>
+                </TextBlock>
+                <TextBlock Text="{Binding Subtitle}" Style="{StaticResource FinKeyHint}"/>
+                <TextBlock Text="F3 find party  ·  F4 pay full due  ·  Alt+S save  ·  Ctrl+P save and print  ·  Ctrl+L ledger" Style="{StaticResource FinKeyHint}"/>
+            </StackPanel>
+        </DockPanel>
+
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+            <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                       Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                       Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}"/>
+            <TextBlock Text="{Binding LastVoucherSummary}" Style="{StaticResource FinKeyHint}"
+                       Visibility="{Binding HasLastVoucher, Converter={StaticResource BoolToVisibility}}"/>
+        </StackPanel>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Party search -->
+            <Border Grid.Column="0" Style="{StaticResource CardStyle}" Padding="12,10">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Text="{Binding PartyLabel}" Style="{StaticResource FinLabel}"/>
+                    <TextBox DockPanel.Dock="Top" x:Name="PartySearchBox" Text="{Binding PartySearchText, UpdateSourceTrigger=PropertyChanged, Delay=250}"
+                             Style="{StaticResource FinInput}" ToolTip="Name, phone or GSTIN. Down arrow moves to the list." PreviewKeyDown="OnSearchKeyDown"/>
+                    <ListBox x:Name="PartyList" ItemsSource="{Binding PartyResults}" SelectedItem="{Binding SelectedPartyResult}" Margin="0,8,0,0"
+                             BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,3">
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}">
+                                        <Run Text="{Binding Phone, Mode=OneWay}"/><Run Text="   due "/><Run Text="{Binding NetDuePaisa, Mode=OneWay, Converter={StaticResource PaisaToRupees}}"/>
+                                    </TextBlock>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- Payment form -->
+            <Grid Grid.Column="2">
+                <Border Style="{StaticResource CardStyle}" Padding="20" Visibility="{Binding HasNoParty, Converter={StaticResource BoolToVisibility}}">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <TextBlock Text="Choose a party" Style="{StaticResource FinEmptyTitle}"/>
+                        <TextBlock Text="Type a name or phone on the left (F3), then pick the party. Its open bills appear here."
+                                   Style="{StaticResource FinEmptyHint}" MaxWidth="380"/>
+                    </StackPanel>
+                </Border>
+
+                <DockPanel Visibility="{Binding HasParty, Converter={StaticResource BoolToVisibility}}">
+                    <Border DockPanel.Dock="Top" Style="{StaticResource CardStyle}" Padding="12,8" Margin="0,0,0,10">
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="Change" Style="{StaticResource SecondaryButton}" Command="{Binding ChangePartyCommand}" Padding="8,2"/>
+                            <TextBlock Text="{Binding PartySummary}" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                        </DockPanel>
+                    </Border>
+
+                    <Border DockPanel.Dock="Top" Style="{StaticResource CardStyle}" Padding="12,8" Margin="0,0,0,10">
+                        <StackPanel>
+                            <WrapPanel>
+                                <StackPanel Style="{StaticResource FinField}" Width="170">
+                                    <TextBlock Text="{Binding AmountLabel}" Style="{StaticResource FinLabel}"/>
+                                    <TextBox Text="{Binding Amount, StringFormat=0.00, UpdateSourceTrigger=LostFocus}" Style="{StaticResource FinNumberInput}"
+                                             FontSize="15" FontWeight="SemiBold"/>
+                                </StackPanel>
+                                <StackPanel Style="{StaticResource FinField}" Width="135">
+                                    <TextBlock Text="DATE *" Style="{StaticResource FinLabel}"/>
+                                    <DatePicker SelectedDate="{Binding PaymentDate}" Height="30"/>
+                                </StackPanel>
+                                <StackPanel Style="{StaticResource FinField}" Width="180">
+                                    <TextBlock Text="MODE *" Style="{StaticResource FinLabel}"/>
+                                    <ComboBox ItemsSource="{Binding Modes}" SelectedItem="{Binding SelectedMode}" DisplayMemberPath="Label" Height="30"/>
+                                </StackPanel>
+                                <StackPanel Style="{StaticResource FinField}" Width="220" Visibility="{Binding ShowAccount, Converter={StaticResource BoolToVisibility}}">
+                                    <TextBlock Text="{Binding AccountLabel}" Style="{StaticResource FinLabel}"/>
+                                    <ComboBox ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedAccount}" DisplayMemberPath="DisplayName" Height="30"/>
+                                </StackPanel>
+                                <StackPanel Style="{StaticResource FinField}" Width="120" Visibility="{Binding IsCheque, Converter={StaticResource BoolToVisibility}}">
+                                    <TextBlock Text="CHEQUE NO *" Style="{StaticResource FinLabel}"/>
+                                    <TextBox Text="{Binding ChequeNumber}" Style="{StaticResource FinInput}" MaxLength="6"/>
+                                </StackPanel>
+                                <StackPanel Style="{StaticResource FinField}" Width="135" Visibility="{Binding IsCheque, Converter={StaticResource BoolToVisibility}}">
+                                    <TextBlock Text="CHEQUE DATE *" Style="{StaticResource FinLabel}"/>
+                                    <DatePicker SelectedDate="{Binding ChequeDate}" Height="30"/>
+                                </StackPanel>
+                                <StackPanel Style="{StaticResource FinField}" Width="180" Visibility="{Binding IsCheque, Converter={StaticResource BoolToVisibility}}">
+                                    <TextBlock Text="BANK" Style="{StaticResource FinLabel}"/>
+                                    <TextBox Text="{Binding ChequeBank}" Style="{StaticResource FinInput}" MaxLength="80"/>
+                                </StackPanel>
+                                <StackPanel Style="{StaticResource FinField}" Width="190">
+                                    <TextBlock Text="REFERENCE (UTR / TXN NO)" Style="{StaticResource FinLabel}"/>
+                                    <TextBox Text="{Binding Reference}" Style="{StaticResource FinInput}" MaxLength="60"/>
+                                </StackPanel>
+                                <StackPanel Style="{StaticResource FinField}" Width="320">
+                                    <TextBlock Text="NOTES" Style="{StaticResource FinLabel}"/>
+                                    <TextBox Text="{Binding Notes}" Style="{StaticResource FinInput}" MaxLength="250">
+                                        <TextBox.InputBindings>
+                                            <KeyBinding Key="Enter" Command="{Binding SaveCommand}"/>
+                                        </TextBox.InputBindings>
+                                    </TextBox>
+                                </StackPanel>
+                            </WrapPanel>
+                            <DockPanel Margin="0,2,0,0">
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                    <Button Content="Save and print (Ctrl+P)" Style="{StaticResource SecondaryButton}" Command="{Binding SaveAndPrintCommand}" Margin="0,0,8,0"/>
+                                    <Button Content="{Binding SaveLabel}" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <CheckBox Content="Settle oldest dues first" IsChecked="{Binding AutoAllocate}" Margin="0,0,14,0" VerticalAlignment="Center"/>
+                                    <Border Style="{StaticResource FinPill}">
+                                        <TextBlock Text="{Binding AllocationSummary}" FontWeight="SemiBold"/>
+                                    </Border>
+                                </StackPanel>
+                            </DockPanel>
+                            <ItemsControl ItemsSource="{Binding FormErrors}" Style="{StaticResource FinErrorList}"
+                                          Visibility="{Binding HasFormErrors, Converter={StaticResource BoolToVisibility}}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardStyle}" Padding="0">
+                        <DockPanel>
+                            <DockPanel DockPanel.Dock="Top" Margin="12,8">
+                                <Button DockPanel.Dock="Right" Content="Pay full due (F4)" Style="{StaticResource SecondaryButton}" Command="{Binding PayFullDueCommand}" Padding="8,2"/>
+                                <TextBlock VerticalAlignment="Center" FontWeight="SemiBold">
+                                    <Run Text="Open bills  ·  total due "/><Run Text="{Binding TotalDuePaisa, Mode=OneWay, Converter={StaticResource PaisaToRupees}}"/>
+                                </TextBlock>
+                            </DockPanel>
+                            <Grid>
+                                <DataGrid ItemsSource="{Binding Dues}" Style="{StaticResource ModernDataGrid}" RowStyle="{StaticResource FinDueRow}"
+                                          AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" SelectionMode="Single" SelectionUnit="FullRow">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="BILL" Binding="{Binding Number}" Width="1.4*" IsReadOnly="True" FontWeight="SemiBold"/>
+                                        <DataGridTextColumn Header="TYPE" Binding="{Binding TypeLabel}" Width="100" IsReadOnly="True"/>
+                                        <DataGridTextColumn Header="DATE" Binding="{Binding Date, StringFormat=dd-MM-yy}" Width="75" IsReadOnly="True"/>
+                                        <DataGridTextColumn Header="DUE ON" Binding="{Binding DueDate, StringFormat=dd-MM-yy}" Width="75" IsReadOnly="True"/>
+                                        <DataGridTextColumn Header="AGE" Binding="{Binding AgeDays, StringFormat={}{0} d}" Width="55" IsReadOnly="True"/>
+                                        <DataGridTextColumn Header="BILL AMOUNT" Binding="{Binding TotalPaisa, Converter={StaticResource PaisaToRupees}}" Width="100" IsReadOnly="True"/>
+                                        <DataGridTextColumn Header="PAID" Binding="{Binding PaidPaisa, Converter={StaticResource PaisaToRupees}}" Width="90" IsReadOnly="True"/>
+                                        <DataGridTextColumn Header="BALANCE" Binding="{Binding BalancePaisa, Converter={StaticResource PaisaToRupees}}" Width="100" IsReadOnly="True" FontWeight="SemiBold"/>
+                                        <DataGridTemplateColumn Header="PAY NOW ₹" Width="120">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBox Text="{Binding PayNow, StringFormat=0.00, UpdateSourceTrigger=LostFocus}" Style="{StaticResource FinNumberInput}"
+                                                             Height="26" MinHeight="24" Margin="2,1"/>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTemplateColumn Header="" Width="70">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Button Content="Full" Style="{StaticResource SecondaryButton}" Padding="8,2" Focusable="False"
+                                                            Command="{Binding DataContext.PayRowInFullCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding HasNoDues, Converter={StaticResource BoolToVisibility}}">
+                                    <TextBlock Text="Nothing due" Style="{StaticResource FinEmptyTitle}"/>
+                                    <TextBlock Text="This party has no open bills. A payment saved now stays on account as an advance."
+                                               Style="{StaticResource FinEmptyHint}" MaxWidth="380"/>
+                                </StackPanel>
+                            </Grid>
+                        </DockPanel>
+                    </Border>
+                </DockPanel>
+            </Grid>
+        </Grid>
+    </DockPanel>
+</UserControl>

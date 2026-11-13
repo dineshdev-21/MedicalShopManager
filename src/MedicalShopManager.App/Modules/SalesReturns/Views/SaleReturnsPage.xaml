@@ -1,0 +1,263 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.SalesReturns.Views.SaleReturnsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.SalesReturns.ViewModels"
+             xmlns:local="clr-namespace:MedicalShopManager.App.Modules.SalesReturns.Views"
+             mc:Ignorable="d"
+             local:SalesReturnsFocus.KeyboardForm="True"
+             d:DataContext="{d:DesignInstance Type=vm:SaleReturnsViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="SalesReturnsStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
+        <KeyBinding Key="P" Modifiers="Control" Command="{Binding PrintCommand}"/>
+        <KeyBinding Key="F2" Command="{Binding PreviewCommand}"/>
+        <KeyBinding Key="F4" Command="{Binding BeginRefundCommand}"/>
+        <KeyBinding Key="Delete" Command="{Binding BeginCancelCommand}"/>
+        <KeyBinding Key="Escape" Command="{Binding CloseDialogsCommand}"/>
+    </UserControl.InputBindings>
+
+    <Grid>
+        <DockPanel Margin="0,0,8,0">
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="Today" Style="{StaticResource SecondaryButton}" Command="{Binding TodayCommand}" Margin="0,0,6,0"
+                            Visibility="{Binding ShowDateRange, Converter={StaticResource BoolToVisibility}}"/>
+                    <Button Content="This month" Style="{StaticResource SecondaryButton}" Command="{Binding ThisMonthCommand}" Margin="0,0,6,0"
+                            Visibility="{Binding ShowDateRange, Converter={StaticResource BoolToVisibility}}"/>
+                    <Button Content="Refresh (F5)" Style="{StaticResource SecondaryButton}" Command="{Binding RefreshCommand}" Margin="0,0,6,0"/>
+                    <Button Content="New return (Ctrl+Alt+T)" Style="{StaticResource PrimaryButton}" Command="{Binding NewReturnCommand}"/>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="{Binding Title}" Style="{StaticResource PageTitle}" Margin="0"/>
+                    <TextBlock Text="{Binding Subtitle}" Style="{StaticResource SrKeyHint}"/>
+                    <TextBlock Text="Ctrl+P print  ·  F2 preview  ·  F4 refund open credit  ·  Del cancel return  ·  F5 refresh" Style="{StaticResource SrKeyHint}"/>
+                </StackPanel>
+            </DockPanel>
+
+            <Border DockPanel.Dock="Top" Style="{StaticResource CardStyle}" Padding="12,8" Margin="0,0,0,10">
+                <WrapPanel>
+                    <StackPanel Style="{StaticResource SrField}" Width="260">
+                        <TextBlock Text="SEARCH RETURN / CREDIT NOTE / BILL / CUSTOMER" Style="{StaticResource SrLabel}"/>
+                        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource SrInput}"
+                                 ToolTip="Searches all dates. Press Enter to search.">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding RefreshCommand}"/>
+                            </TextBox.InputBindings>
+                        </TextBox>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource SrField}" Width="140" Visibility="{Binding ShowDateRange, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="FROM" Style="{StaticResource SrLabel}"/>
+                        <DatePicker SelectedDate="{Binding FromDate}" Height="30"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource SrField}" Width="140" Visibility="{Binding ShowDateRange, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="TO" Style="{StaticResource SrLabel}"/>
+                        <DatePicker SelectedDate="{Binding ToDate}" Height="30"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource SrField}" Width="170">
+                        <TextBlock Text="SETTLEMENT" Style="{StaticResource SrLabel}"/>
+                        <ComboBox ItemsSource="{Binding ModeFilters}" SelectedItem="{Binding SelectedModeFilter}" DisplayMemberPath="Label" Height="30"/>
+                    </StackPanel>
+                    <CheckBox Content="Open credit only (all dates)" IsChecked="{Binding OpenCreditOnly}" VerticalAlignment="Center" Margin="0,8,16,0"/>
+                    <CheckBox Content="Show cancelled" IsChecked="{Binding IncludeCancelled}" VerticalAlignment="Center" Margin="0,8,0,0"
+                              Visibility="{Binding ShowDateRange, Converter={StaticResource BoolToVisibility}}"/>
+                </WrapPanel>
+            </Border>
+
+            <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                           Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                           Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}"/>
+                <Border Style="{StaticResource CardStyle}" Padding="14,8" Margin="0,4,0,0">
+                    <WrapPanel>
+                        <StackPanel Style="{StaticResource SrFooterItem}">
+                            <TextBlock Text="RETURNS" Style="{StaticResource SrLabel}"/>
+                            <TextBlock Text="{Binding Totals.Count}" Style="{StaticResource SrValue}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource SrFooterItem}">
+                            <TextBlock Text="TAXABLE" Style="{StaticResource SrLabel}"/>
+                            <TextBlock Text="{Binding Totals.TaxablePaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource SrValue}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource SrFooterItem}">
+                            <TextBlock Text="GST REVERSED" Style="{StaticResource SrLabel}"/>
+                            <TextBlock Text="{Binding Totals.TaxPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource SrValue}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource SrFooterItem}">
+                            <TextBlock Text="CREDIT NOTE VALUE" Style="{StaticResource SrLabel}"/>
+                            <TextBlock Text="{Binding Totals.NetAmountPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource SrValue}"
+                                       Foreground="{StaticResource PrimaryBrush}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource SrFooterItem}">
+                            <TextBlock Text="REFUNDED" Style="{StaticResource SrLabel}"/>
+                            <TextBlock Text="{Binding Totals.RefundedPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource SrValue}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource SrFooterItem}">
+                            <TextBlock Text="OPEN CREDIT" Style="{StaticResource SrLabel}"/>
+                            <TextBlock Text="{Binding Totals.OpenCreditPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource SrValue}"
+                                       Foreground="{StaticResource WarningBrush}"/>
+                        </StackPanel>
+                    </WrapPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Selected return: lines and refunds -->
+            <Border DockPanel.Dock="Bottom" Style="{StaticResource CardStyle}" Padding="12,8" Margin="0,8,0,0" MaxHeight="230"
+                    Visibility="{Binding HasDocument, Converter={StaticResource BoolToVisibility}}">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" FontWeight="SemiBold" Margin="0,0,0,4" TextWrapping="Wrap">
+                        <Run Text="{Binding SelectedDocument.ReturnNumber, Mode=OneWay}"/><Run Text="  ·  credit note "/><Run Text="{Binding SelectedDocument.CreditNoteNumber, Mode=OneWay}"/>
+                        <Run Text="  ·  against "/><Run Text="{Binding SelectedDocument.AgainstLabel, Mode=OneWay}"/>
+                        <Run Text="  ·  "/><Run Text="{Binding SelectedDocument.RefundModeLabel, Mode=OneWay}"/>
+                        <Run Text="  ·  reason: "/><Run Text="{Binding SelectedDocument.Reason, Mode=OneWay}"/>
+                        <Run Text="  ·  by "/><Run Text="{Binding SelectedDocument.CreatedByName, Mode=OneWay}"/>
+                        <Run Text="  "/><Run Text="{Binding SelectedDocument.CancelReason, Mode=OneWay}" Foreground="{StaticResource DangerBrush}"/>
+                    </TextBlock>
+                    <ItemsControl DockPanel.Dock="Bottom" ItemsSource="{Binding SelectedDocument.Refunds}" Margin="0,4,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}">
+                                    <Run Text="Refund "/><Run Text="{Binding RefundDate, Mode=OneWay, StringFormat=dd-MM-yyyy}"/>
+                                    <Run Text="  "/><Run Text="{Binding MethodLabel, Mode=OneWay}"/>
+                                    <Run Text="  "/><Run Text="{Binding AmountPaisa, Mode=OneWay, Converter={StaticResource PaisaToRupees}}"/>
+                                    <Run Text="  "/><Run Text="{Binding Reference, Mode=OneWay}"/>
+                                </TextBlock>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <DataGrid ItemsSource="{Binding SelectedDocument.Lines}" Style="{StaticResource ModernDataGrid}" AutoGenerateColumns="False"
+                              IsReadOnly="True" HeadersVisibility="Column" IsTabStop="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="PRODUCT" Binding="{Binding MedicineName}" Width="2*"/>
+                            <DataGridTextColumn Header="BATCH" Binding="{Binding BatchNumber}" Width="90"/>
+                            <DataGridTextColumn Header="EXP" Binding="{Binding ExpiryLabel}" Width="55"/>
+                            <DataGridTextColumn Header="QTY" Binding="{Binding QuantityDisplay}" Width="60"/>
+                            <DataGridTextColumn Header="GST %" Binding="{Binding GstPercent, StringFormat=0.##}" Width="50"/>
+                            <DataGridTextColumn Header="TAXABLE" Binding="{Binding TaxablePaisa, Converter={StaticResource PaisaToRupees}}" Width="90"/>
+                            <DataGridTextColumn Header="GST" Binding="{Binding TaxPaisa, Converter={StaticResource PaisaToRupees}}" Width="80"/>
+                            <DataGridTextColumn Header="AMOUNT" Binding="{Binding LineTotalPaisa, Converter={StaticResource PaisaToRupees}}" Width="90"/>
+                            <DataGridTextColumn Header="STOCK" Binding="{Binding DispositionLabel}" Width="1.2*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardStyle}" Padding="0">
+                <Grid>
+                    <DataGrid ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" Style="{StaticResource ModernDataGrid}"
+                              RowStyle="{StaticResource SrStatusRow}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
+                        <DataGrid.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding PreviewCommand}"/>
+                            <MouseBinding Gesture="LeftDoubleClick" Command="{Binding PreviewCommand}"/>
+                        </DataGrid.InputBindings>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="CREDIT NOTE" Binding="{Binding CreditNoteNumber}" Width="120" FontWeight="SemiBold"/>
+                            <DataGridTextColumn Header="RETURN NO" Binding="{Binding ReturnNumber}" Width="120"/>
+                            <DataGridTextColumn Header="DATE" Binding="{Binding ReturnDate, StringFormat=dd-MM-yy}" Width="75"/>
+                            <DataGridTextColumn Header="AGAINST BILL" Binding="{Binding AgainstDisplay}" Width="120"/>
+                            <DataGridTextColumn Header="CUSTOMER" Binding="{Binding CustomerDisplay}" Width="2*"/>
+                            <DataGridTextColumn Header="ITEMS" Binding="{Binding ItemCount}" Width="50"/>
+                            <DataGridTextColumn Header="TAXABLE" Binding="{Binding TaxablePaisa, Converter={StaticResource PaisaToRupees}}" Width="90"/>
+                            <DataGridTextColumn Header="GST" Binding="{Binding TaxPaisa, Converter={StaticResource PaisaToRupees}}" Width="80"/>
+                            <DataGridTextColumn Header="VALUE" Binding="{Binding NetAmountPaisa, Converter={StaticResource PaisaToRupees}}" Width="95"/>
+                            <DataGridTextColumn Header="REFUNDED" Binding="{Binding RefundedPaisa, Converter={StaticResource PaisaToRupees}}" Width="95"/>
+                            <DataGridTextColumn Header="OPEN" Binding="{Binding CreditBalancePaisa, Converter={StaticResource PaisaToRupees}}" Width="90"/>
+                            <DataGridTextColumn Header="SETTLEMENT" Binding="{Binding RefundModeLabel}" Width="120"/>
+                            <DataGridTextColumn Header="STATUS" Binding="{Binding StatusLabel}" Width="90"/>
+                            <DataGridTemplateColumn Header="ACTIONS" Width="230">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button Content="Print" Style="{StaticResource SecondaryButton}" Padding="8,2" Margin="0,0,4,0" Focusable="False"
+                                                    Command="{Binding DataContext.PrintCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                            <Button Content="Refund" Style="{StaticResource SecondaryButton}" Padding="8,2" Margin="0,0,4,0" Focusable="False"
+                                                    IsEnabled="{Binding HasOpenCredit}"
+                                                    Command="{Binding DataContext.BeginRefundCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                            <Button Content="Bill" Style="{StaticResource SecondaryButton}" Padding="8,2" Margin="0,0,4,0" Focusable="False"
+                                                    Command="{Binding DataContext.OpenBillCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                            <Button Content="Cancel" Style="{StaticResource DangerButton}" Padding="8,2" Focusable="False"
+                                                    Command="{Binding DataContext.BeginCancelCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="{Binding EmptyTitle}" Style="{StaticResource SrEmptyTitle}"/>
+                        <TextBlock Text="{Binding EmptyHint}" Style="{StaticResource SrEmptyHint}" MaxWidth="420"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DockPanel>
+
+        <!-- Cancel return dialog -->
+        <Grid Style="{StaticResource SrOverlay}" Visibility="{Binding IsCancelDialogOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource SrDialogCard}" Width="460" local:SalesReturnsFocus.FocusFirstOnShow="True">
+                <StackPanel>
+                    <TextBlock Text="Cancel sale return" Style="{StaticResource SectionHeader}" Margin="0,0,0,6"/>
+                    <TextBlock Text="{Binding DialogTarget}" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                    <TextBlock Text="Units put back into stock are taken out again and any refund is reversed in the cash book. This cannot be undone."
+                               TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,10"/>
+                    <TextBlock Text="REASON *" Style="{StaticResource SrLabel}"/>
+                    <TextBox Text="{Binding CancelReason, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource SrInput}" MaxLength="120">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding ConfirmCancelCommand}"/>
+                        </TextBox.InputBindings>
+                    </TextBox>
+                    <ItemsControl ItemsSource="{Binding DialogErrors}" Style="{StaticResource SrErrorList}"
+                                  Visibility="{Binding HasDialogErrors, Converter={StaticResource BoolToVisibility}}"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <Button Content="Keep return (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding CloseDialogsCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Cancel return" Style="{StaticResource DangerButton}" Command="{Binding ConfirmCancelCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Refund open credit dialog -->
+        <Grid Style="{StaticResource SrOverlay}" Visibility="{Binding IsRefundDialogOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource SrDialogCard}" Width="460" local:SalesReturnsFocus.FocusFirstOnShow="True">
+                <StackPanel>
+                    <TextBlock Text="Refund open credit" Style="{StaticResource SectionHeader}" Margin="0,0,0,6"/>
+                    <TextBlock Text="{Binding DialogTarget}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                    <WrapPanel>
+                        <StackPanel Style="{StaticResource SrField}" Width="140">
+                            <TextBlock Text="AMOUNT ₹ *" Style="{StaticResource SrLabel}"/>
+                            <TextBox Text="{Binding RefundAmount, StringFormat=0.00}" Style="{StaticResource SrNumberInput}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource SrField}" Width="140">
+                            <TextBlock Text="PAID BY *" Style="{StaticResource SrLabel}"/>
+                            <ComboBox ItemsSource="{Binding RefundMethods}" SelectedItem="{Binding SelectedRefundMethod}" DisplayMemberPath="Label" Height="30"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource SrField}" Width="130">
+                            <TextBlock Text="DATE" Style="{StaticResource SrLabel}"/>
+                            <DatePicker SelectedDate="{Binding RefundDate}" Height="30"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource SrField}" Width="300">
+                            <TextBlock Text="REFERENCE (UPI / TXN NO)" Style="{StaticResource SrLabel}"/>
+                            <TextBox Text="{Binding RefundReference}" Style="{StaticResource SrInput}" MaxLength="60">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Enter" Command="{Binding ConfirmRefundCommand}"/>
+                                </TextBox.InputBindings>
+                            </TextBox>
+                        </StackPanel>
+                    </WrapPanel>
+                    <ItemsControl ItemsSource="{Binding DialogErrors}" Style="{StaticResource SrErrorList}"
+                                  Visibility="{Binding HasDialogErrors, Converter={StaticResource BoolToVisibility}}"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <Button Content="Close (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding CloseDialogsCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Record refund" Style="{StaticResource PrimaryButton}" Command="{Binding ConfirmRefundCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

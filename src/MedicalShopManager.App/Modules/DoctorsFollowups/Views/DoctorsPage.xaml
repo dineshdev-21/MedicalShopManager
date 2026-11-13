@@ -1,0 +1,104 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.DoctorsFollowups.Views.DoctorsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.DoctorsFollowups.ViewModels"
+             xmlns:local="clr-namespace:MedicalShopManager.App.Modules.DoctorsFollowups.Views"
+             mc:Ignorable="d"
+             local:DoctorsFollowupsFocus.KeyboardForm="True"
+             d:DataContext="{d:DesignInstance Type=vm:DoctorsViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="DoctorsFollowupsStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="F2" Command="{Binding AddCommand}"/>
+        <KeyBinding Key="F4" Command="{Binding EditCommand}"/>
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
+        <KeyBinding Key="F6" Command="{Binding ViewSalesCommand}"/>
+    </UserControl.InputBindings>
+
+    <Grid>
+        <DockPanel Margin="0,0,8,0">
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="Doctor-wise sales (F6)" Style="{StaticResource SecondaryButton}" Command="{Binding ViewSalesCommand}" Margin="0,0,8,0"/>
+                    <Button Content="Refresh (F5)" Style="{StaticResource SecondaryButton}" Command="{Binding RefreshCommand}" Margin="0,0,8,0"/>
+                    <Button Content="+ Add Doctor (F2)" Style="{StaticResource PrimaryButton}" Command="{Binding AddCommand}"/>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="Doctors" Style="{StaticResource PageTitle}" Margin="0"/>
+                    <TextBlock Style="{StaticResource DfKeyHint}">
+                        <Run Text="{Binding ActiveCount, Mode=OneWay}"/><Run Text=" active doctor(s)  ·  F2 add  ·  F4 / Enter edit  ·  Del deactivate  ·  F6 doctor-wise sales  ·  F5 refresh"/>
+                    </TextBlock>
+                </StackPanel>
+            </DockPanel>
+
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                <CheckBox DockPanel.Dock="Right" Content="Show inactive" IsChecked="{Binding IncludeInactive}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                <TextBox Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfInput}" Height="32"
+                         ToolTip="Search by name, registration no, phone, clinic, specialization or city"/>
+            </DockPanel>
+
+            <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <Button Content="Edit (F4)" Style="{StaticResource SecondaryButton}" Command="{Binding EditCommand}" Margin="0,0,8,0"/>
+                    <Button Content="{Binding ActivateLabel}" Style="{StaticResource SecondaryButton}" Command="{Binding ToggleActiveCommand}"/>
+                </StackPanel>
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                           Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                           Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}"/>
+            </StackPanel>
+
+            <Border Style="{StaticResource CardStyle}" Padding="0">
+                <Grid>
+                    <DataGrid ItemsSource="{Binding Doctors}" SelectedItem="{Binding SelectedDoctor}" Style="{StaticResource ModernDataGrid}"
+                              RowStyle="{StaticResource DfDoctorRow}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
+                        <DataGrid.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding EditCommand}"/>
+                            <KeyBinding Key="Delete" Command="{Binding ToggleActiveCommand}"/>
+                            <MouseBinding Gesture="LeftDoubleClick" Command="{Binding EditCommand}"/>
+                        </DataGrid.InputBindings>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="DOCTOR" Binding="{Binding DisplayName}" Width="1.6*" FontWeight="SemiBold"/>
+                            <DataGridTextColumn Header="REG. NO" Binding="{Binding RegistrationNo}" Width="110"/>
+                            <DataGridTextColumn Header="QUALIFICATION / SPECIALIZATION / CLINIC" Binding="{Binding Subtitle}" Width="2*"/>
+                            <DataGridTextColumn Header="PHONE" Binding="{Binding Phone}" Width="110"/>
+                            <DataGridTextColumn Header="CITY" Binding="{Binding City}" Width="100"/>
+                            <DataGridTextColumn Header="COMMISSION" Binding="{Binding CommissionLabel}" Width="120"/>
+                            <DataGridTextColumn Header="BILLS" Binding="{Binding BillCount}" Width="60"/>
+                            <DataGridTextColumn Header="LAST BILL" Binding="{Binding LastBillDate, StringFormat=dd-MM-yy}" Width="80"/>
+                            <DataGridTextColumn Header="STATUS" Binding="{Binding StatusLabel}" Width="75"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="{Binding EmptyTitle}" Style="{StaticResource DfEmptyTitle}"/>
+                        <TextBlock Text="{Binding EmptyHint}" Style="{StaticResource DfEmptyHint}" MaxWidth="460" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DockPanel>
+
+        <!-- Add / edit doctor -->
+        <Grid Style="{StaticResource DfOverlay}" Visibility="{Binding IsEditorOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource DfDialogCard}" Width="640" local:DoctorsFollowupsFocus.FocusFirstOnShow="True">
+                <Border.InputBindings>
+                    <KeyBinding Key="Escape" Command="{Binding CloseEditorCommand}"/>
+                    <KeyBinding Key="S" Modifiers="Alt" Command="{Binding SaveCommand}"/>
+                </Border.InputBindings>
+                <StackPanel>
+                    <ContentControl Content="{Binding Editor}" ContentTemplateSelector="{StaticResource ViewLocator}" IsTabStop="False"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                        <Button Content="Cancel (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding CloseEditorCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Save (Alt+S)" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

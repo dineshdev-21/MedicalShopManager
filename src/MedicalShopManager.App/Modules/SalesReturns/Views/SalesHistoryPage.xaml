@@ -1,0 +1,165 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.SalesReturns.Views.SalesHistoryPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.SalesReturns.ViewModels"
+             xmlns:local="clr-namespace:MedicalShopManager.App.Modules.SalesReturns.Views"
+             mc:Ignorable="d"
+             local:SalesReturnsFocus.KeyboardForm="True"
+             d:DataContext="{d:DesignInstance Type=vm:SalesHistoryViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="SalesReturnsStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
+        <KeyBinding Key="P" Modifiers="Control" Command="{Binding PrintCommand}"/>
+        <KeyBinding Key="F2" Command="{Binding PreviewCommand}"/>
+        <KeyBinding Key="R" Modifiers="Alt" Command="{Binding ReturnCommand}"/>
+    </UserControl.InputBindings>
+
+    <DockPanel Margin="0,0,8,0">
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="Today" Style="{StaticResource SecondaryButton}" Command="{Binding TodayCommand}" Margin="0,0,6,0"/>
+                <Button Content="This month" Style="{StaticResource SecondaryButton}" Command="{Binding ThisMonthCommand}" Margin="0,0,6,0"/>
+                <Button Content="Last 30 days" Style="{StaticResource SecondaryButton}" Command="{Binding Last30DaysCommand}" Margin="0,0,6,0"/>
+                <Button Content="Refresh (F5)" Style="{StaticResource PrimaryButton}" Command="{Binding RefreshCommand}"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Text="Sales" Style="{StaticResource PageTitle}" Margin="0"/>
+                <TextBlock Text="Enter view bill  ·  Ctrl+P print  ·  F2 preview  ·  Alt+R return items  ·  F5 refresh" Style="{StaticResource SrKeyHint}"/>
+            </StackPanel>
+        </DockPanel>
+
+        <Border DockPanel.Dock="Top" Style="{StaticResource CardStyle}" Padding="12,8" Margin="0,0,0,10">
+            <WrapPanel>
+                <StackPanel Style="{StaticResource SrField}" Width="260">
+                    <TextBlock Text="SEARCH BILL NO / CUSTOMER / MOBILE" Style="{StaticResource SrLabel}"/>
+                    <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource SrInput}"
+                             ToolTip="Searches all dates. Press Enter to search.">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding RefreshCommand}"/>
+                        </TextBox.InputBindings>
+                    </TextBox>
+                </StackPanel>
+                <StackPanel Style="{StaticResource SrField}" Width="140">
+                    <TextBlock Text="FROM" Style="{StaticResource SrLabel}"/>
+                    <DatePicker SelectedDate="{Binding FromDate}" Height="30"/>
+                </StackPanel>
+                <StackPanel Style="{StaticResource SrField}" Width="140">
+                    <TextBlock Text="TO" Style="{StaticResource SrLabel}"/>
+                    <DatePicker SelectedDate="{Binding ToDate}" Height="30"/>
+                </StackPanel>
+                <StackPanel Style="{StaticResource SrField}" Width="160">
+                    <TextBlock Text="PAYMENT STATUS" Style="{StaticResource SrLabel}"/>
+                    <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus}" DisplayMemberPath="Label" Height="30"/>
+                </StackPanel>
+                <StackPanel Style="{StaticResource SrField}" Width="150">
+                    <TextBlock Text="MODE" Style="{StaticResource SrLabel}"/>
+                    <ComboBox ItemsSource="{Binding ModeOptions}" SelectedItem="{Binding SelectedMode}" DisplayMemberPath="Label" Height="30"/>
+                </StackPanel>
+                <Border Style="{StaticResource SrPill}" Visibility="{Binding HasCustomerFilter, Converter={StaticResource BoolToVisibility}}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding CustomerFilterLabel}" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,8,0"/>
+                        <Button Content="Clear" Style="{StaticResource SecondaryButton}" Command="{Binding ClearCustomerFilterCommand}" Padding="8,2"/>
+                    </StackPanel>
+                </Border>
+            </WrapPanel>
+        </Border>
+
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+            <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                       Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                       Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}"/>
+            <Border Style="{StaticResource CardStyle}" Padding="14,8" Margin="0,4,0,0">
+                <WrapPanel>
+                    <StackPanel Style="{StaticResource SrFooterItem}">
+                        <TextBlock Text="BILLS" Style="{StaticResource SrLabel}"/>
+                        <TextBlock Text="{Binding Totals.BillCount}" Style="{StaticResource SrValue}"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource SrFooterItem}">
+                        <TextBlock Text="SALES" Style="{StaticResource SrLabel}"/>
+                        <TextBlock Text="{Binding Totals.GrandTotalPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource SrValue}"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource SrFooterItem}">
+                        <TextBlock Text="GST" Style="{StaticResource SrLabel}"/>
+                        <TextBlock Text="{Binding Totals.TaxPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource SrValue}"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource SrFooterItem}">
+                        <TextBlock Text="RECEIVED" Style="{StaticResource SrLabel}"/>
+                        <TextBlock Text="{Binding Totals.PaidPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource SrValue}"
+                                   Foreground="{StaticResource SuccessBrush}"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource SrFooterItem}">
+                        <TextBlock Text="DUE" Style="{StaticResource SrLabel}"/>
+                        <TextBlock Text="{Binding Totals.DuePaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource SrValue}"
+                                   Foreground="{StaticResource DangerBrush}"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource SrFooterItem}">
+                        <TextBlock Text="RETURNS" Style="{StaticResource SrLabel}"/>
+                        <TextBlock Text="{Binding Totals.ReturnedPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource SrValue}"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource SrFooterItem}">
+                        <TextBlock Text="NET SALES" Style="{StaticResource SrLabel}"/>
+                        <TextBlock Text="{Binding Totals.NetSalesPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource SrValue}"
+                                   Foreground="{StaticResource PrimaryBrush}"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource SrFooterItem}">
+                        <TextBlock Text="CANCELLED" Style="{StaticResource SrLabel}"/>
+                        <TextBlock Text="{Binding Totals.CancelledCount}" Style="{StaticResource SrValue}"/>
+                    </StackPanel>
+                </WrapPanel>
+            </Border>
+        </StackPanel>
+
+        <Border Style="{StaticResource CardStyle}" Padding="0">
+            <Grid>
+                <DataGrid x:Name="RegisterGrid" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" Style="{StaticResource ModernDataGrid}"
+                          RowStyle="{StaticResource SrStatusRow}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
+                    <DataGrid.InputBindings>
+                        <KeyBinding Key="Enter" Command="{Binding ViewCommand}"/>
+                        <MouseBinding Gesture="LeftDoubleClick" Command="{Binding ViewCommand}"/>
+                    </DataGrid.InputBindings>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="BILL NO" Binding="{Binding InvoiceNumber}" Width="130" FontWeight="SemiBold"/>
+                        <DataGridTextColumn Header="DATE" Binding="{Binding InvoiceDate, StringFormat=dd-MM-yy HH:mm}" Width="110"/>
+                        <DataGridTextColumn Header="CUSTOMER" Binding="{Binding CustomerDisplay}" Width="2*"/>
+                        <DataGridTextColumn Header="MOBILE" Binding="{Binding CustomerPhone}" Width="100"/>
+                        <DataGridTextColumn Header="ITEMS" Binding="{Binding ItemCount}" Width="50"/>
+                        <DataGridTextColumn Header="AMOUNT" Binding="{Binding GrandTotalPaisa, Converter={StaticResource PaisaToRupees}}" Width="100"/>
+                        <DataGridTextColumn Header="PAID" Binding="{Binding AmountPaidPaisa, Converter={StaticResource PaisaToRupees}}" Width="95"/>
+                        <DataGridTextColumn Header="DUE" Binding="{Binding BalanceDuePaisa, Converter={StaticResource PaisaToRupees}}" Width="95"/>
+                        <DataGridTextColumn Header="MODE" Binding="{Binding ModeLabel}" Width="65"/>
+                        <DataGridTextColumn Header="STATUS" Binding="{Binding StatusLabel}" Width="85"/>
+                        <DataGridTextColumn Header="RETURNED" Binding="{Binding ReturnedPaisa, Converter={StaticResource PaisaToRupees}}" Width="90"/>
+                        <DataGridTemplateColumn Header="ACTIONS" Width="190">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Content="View" Style="{StaticResource SecondaryButton}" Padding="8,2" Margin="0,0,4,0" Focusable="False"
+                                                Command="{Binding DataContext.ViewCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                        <Button Content="Print" Style="{StaticResource SecondaryButton}" Padding="8,2" Margin="0,0,4,0" Focusable="False"
+                                                Command="{Binding DataContext.PrintCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                        <Button Content="Return" Style="{StaticResource SecondaryButton}" Padding="8,2" Focusable="False"
+                                                IsEnabled="{Binding CanReturn}"
+                                                Command="{Binding DataContext.ReturnCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="No bills found" Style="{StaticResource SrEmptyTitle}"/>
+                    <TextBlock Text="{Binding EmptyHint}" Style="{StaticResource SrEmptyHint}" MaxWidth="460"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </DockPanel>
+</UserControl>

@@ -1,0 +1,117 @@
+<UserControl x:Class="MedicalShopManager.App.Views.ExcelManagementPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:ExcelManagementViewModel}">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0,0,8,0">
+            <TextBlock Text="Excel Workbook Synchronization" Style="{StaticResource PageTitle}"/>
+
+            <!-- Status Alert Banners -->
+            <Border Background="{StaticResource SuccessBgColor}" CornerRadius="4" Padding="10,6" Margin="0,0,0,12"
+                    Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}">
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold"/>
+            </Border>
+            <Border Background="{StaticResource DangerBgColor}" CornerRadius="4" Padding="10,6" Margin="0,0,0,12"
+                    Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}">
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}"/>
+            </Border>
+
+            <!-- Locked Workbook Warning Banner -->
+            <Border Background="{StaticResource WarningBgColor}" BorderBrush="{StaticResource WarningBrush}" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,0,16"
+                    Visibility="{Binding IsWorkbookLocked, Converter={StaticResource BoolToVisibility}}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="⚠️ " FontSize="18" VerticalAlignment="Center"/>
+                    <StackPanel Margin="8,0,0,0">
+                        <TextBlock Text="Workbook is Currently Open in Excel" FontWeight="Bold" Foreground="{StaticResource WarningBrush}"/>
+                        <TextBlock Text="Changes are safely buffered in the offline queue. Close Excel to allow automatic file update." FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- KPI Status Cards -->
+            <UniformGrid Rows="1" Columns="3" Margin="0,0,0,16">
+                <!-- Sync Status -->
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="Sync Status" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeCaption}"/>
+                        <TextBlock Text="{Binding SyncStatusText}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Last Sync Time -->
+                <Border Style="{StaticResource CardStyle}" Margin="4,0">
+                    <StackPanel>
+                        <TextBlock Text="Last Synchronized" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeCaption}"/>
+                        <TextBlock Text="{Binding LastSyncTime}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Pending Queue Items -->
+                <Border Style="{StaticResource CardStyle}" Margin="8,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Pending Sync Queue" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeCaption}"/>
+                        <TextBlock Text="{Binding PendingCount}" FontSize="24" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- Workbook Location & Actions Card -->
+            <Border Style="{StaticResource CardStyle}" Padding="16" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Workbook Configuration" Style="{StaticResource SectionHeader}" Margin="0,0,0,8"/>
+                    
+                    <TextBlock Text="Workbook File Path:" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                    <Border Background="#F5F5F5" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="10,8" Margin="0,0,0,14">
+                        <TextBlock Text="{Binding WorkbookPath}" FontFamily="Consolas" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                    </Border>
+
+                    <!-- Action Buttons -->
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="⚡ Sync Pending Changes Now" 
+                                Command="{Binding SyncNowCommand}" 
+                                Style="{StaticResource PrimaryButton}" 
+                                Height="36" 
+                                Padding="16,0" 
+                                Margin="0,0,10,0"/>
+
+                        <Button Content="🔄 Rebuild Entire 14-Sheet Workbook" 
+                                Command="{Binding RebuildWorkbookCommand}" 
+                                Style="{StaticResource SecondaryButton}" 
+                                Height="36" 
+                                Padding="16,0"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Worksheets Information Card -->
+            <Border Style="{StaticResource CardStyle}" Padding="16">
+                <StackPanel>
+                    <TextBlock Text="Automatically Synchronized Worksheets (14 Total)" Style="{StaticResource SectionHeader}" Margin="0,0,0,10"/>
+                    <TextBlock Text="The Excel file serves as a live, human-readable mirror of your medical shop data. All numbers, dates, and currency values are formatted cleanly." Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,14"/>
+
+                    <UniformGrid Columns="2" Rows="7">
+                        <TextBlock Text="1. Medicines — Catalog, dosage, HSN codes, prices" Margin="0,3"/>
+                        <TextBlock Text="8. Customers — Client phone numbers &amp; balances" Margin="0,3"/>
+                        <TextBlock Text="2. Batches — Expiry dates, purchase cost, MRP" Margin="0,3"/>
+                        <TextBlock Text="9. Payments — Cash, UPI, and bank transactions" Margin="0,3"/>
+                        <TextBlock Text="3. Sales — Invoices, GST totals, customer tags" Margin="0,3"/>
+                        <TextBlock Text="10. Expenses — Operational pharmacy overhead" Margin="0,3"/>
+                        <TextBlock Text="4. SaleItems — Granular line items and taxes" Margin="0,3"/>
+                        <TextBlock Text="11. StockMovements — Complete inventory audit ledger" Margin="0,3"/>
+                        <TextBlock Text="5. Purchases — Supplier invoices and inward bills" Margin="0,3"/>
+                        <TextBlock Text="12. Returns — Customer returns &amp; vendor returns" Margin="0,3"/>
+                        <TextBlock Text="6. PurchaseItems — Batches received and cost breakdown" Margin="0,3"/>
+                        <TextBlock Text="13. AuditLog — Security and change history" Margin="0,3"/>
+                        <TextBlock Text="7. Suppliers — Vendor contacts, GSTIN, balances" Margin="0,3"/>
+                        <TextBlock Text="14. AppSettings — Pharmacy metadata and GST config" Margin="0,3"/>
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

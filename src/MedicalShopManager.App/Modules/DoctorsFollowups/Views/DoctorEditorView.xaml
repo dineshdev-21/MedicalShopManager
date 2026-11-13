@@ -1,0 +1,95 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.DoctorsFollowups.Views.DoctorEditorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.DoctorsFollowups.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:DoctorEditorViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="DoctorsFollowupsStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <StackPanel>
+        <TextBlock Text="{Binding Title}" Style="{StaticResource SectionHeader}" Margin="0,0,0,10"/>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Grid.Column="0" Style="{StaticResource DfField}">
+                <TextBlock Text="DOCTOR NAME *" Style="{StaticResource DfLabel}"/>
+                <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfInput}" MaxLength="110"
+                         ToolTip="Without 'Dr.', it is added on bills and reports"/>
+            </StackPanel>
+            <StackPanel Grid.Row="0" Grid.Column="1" Style="{StaticResource DfField}">
+                <TextBlock Text="REGISTRATION NO (MEDICAL COUNCIL)" Style="{StaticResource DfLabel}"/>
+                <TextBox Text="{Binding RegistrationNo, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfInput}" MaxLength="30"
+                         CharacterCasing="Upper" ToolTip="e.g. KMC 45678 or DMC/R/1234; must be unique"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="1" Grid.Column="0" Style="{StaticResource DfField}">
+                <TextBlock Text="QUALIFICATION" Style="{StaticResource DfLabel}"/>
+                <TextBox Text="{Binding Qualification, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfInput}" MaxLength="200"
+                         ToolTip="e.g. MBBS, MD"/>
+            </StackPanel>
+            <StackPanel Grid.Row="1" Grid.Column="1" Style="{StaticResource DfField}">
+                <TextBlock Text="SPECIALIZATION" Style="{StaticResource DfLabel}"/>
+                <TextBox Text="{Binding Specialization, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfInput}" MaxLength="200"
+                         ToolTip="e.g. General Physician, Cardiologist"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Grid.Column="0" Style="{StaticResource DfField}">
+                <TextBlock Text="HOSPITAL / CLINIC" Style="{StaticResource DfLabel}"/>
+                <TextBox Text="{Binding ClinicName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfInput}" MaxLength="200"/>
+            </StackPanel>
+            <StackPanel Grid.Row="2" Grid.Column="1" Style="{StaticResource DfField}">
+                <TextBlock Text="MOBILE / PHONE" Style="{StaticResource DfLabel}"/>
+                <TextBox Text="{Binding Phone, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfInput}" MaxLength="20"
+                         ToolTip="10-digit mobile, or landline with STD code"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="3" Grid.Column="0" Style="{StaticResource DfField}">
+                <TextBlock Text="E-MAIL" Style="{StaticResource DfLabel}"/>
+                <TextBox Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfInput}" MaxLength="120"/>
+            </StackPanel>
+            <StackPanel Grid.Row="3" Grid.Column="1" Style="{StaticResource DfField}">
+                <TextBlock Text="CITY" Style="{StaticResource DfLabel}"/>
+                <TextBox Text="{Binding City, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfInput}" MaxLength="200"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="4" Grid.ColumnSpan="2" Style="{StaticResource DfField}">
+                <TextBlock Text="ADDRESS" Style="{StaticResource DfLabel}"/>
+                <TextBox Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfInput}" MaxLength="300"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="5" Grid.Column="0" Style="{StaticResource DfField}">
+                <TextBlock Text="COMMISSION %" Style="{StaticResource DfLabel}"/>
+                <StackPanel Orientation="Horizontal">
+                    <TextBox Text="{Binding CommissionPercent, UpdateSourceTrigger=LostFocus, StringFormat=0.##}" Style="{StaticResource DfNumberInput}"
+                             Width="90" ToolTip="0 = no commission"/>
+                    <CheckBox Content="on profit (not on sales)" IsChecked="{Binding CommissionOnProfit}" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                </StackPanel>
+            </StackPanel>
+            <StackPanel Grid.Row="5" Grid.Column="1" Style="{StaticResource DfField}">
+                <TextBlock Text="NOTES" Style="{StaticResource DfLabel}"/>
+                <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfInput}" MaxLength="500"/>
+            </StackPanel>
+        </Grid>
+        <ItemsControl ItemsSource="{Binding Errors}" Style="{StaticResource DfErrorList}" IsTabStop="False"
+                      Visibility="{Binding HasErrors, Converter={StaticResource BoolToVisibility}}"/>
+    </StackPanel>
+</UserControl>

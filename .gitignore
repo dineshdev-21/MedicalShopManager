@@ -1,0 +1,23 @@
+## Visual Studio / .NET / C#
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+.idea/
+
+## SQLite & Test outputs
+*.db
+*.db-wal
+*.db-shm
+*.tmp
+TestResults/
+*.zip
+dist/
+publish/
+
+## OS generated
+.DS_Store
+Thumbs.db

@@ -1,0 +1,62 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.Billing.Views.BillingBatchPickerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.Billing.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:BillingBatchPickerViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="BillingStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="Escape" Command="{Binding CloseCommand}"/>
+    </UserControl.InputBindings>
+
+    <Border Style="{StaticResource BillingDialogCard}" Width="980" MaxHeight="520">
+        <DockPanel>
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                <Button DockPanel.Dock="Right" Content="✕" Command="{Binding CloseCommand}" Style="{StaticResource BillingLinkButton}" IsTabStop="False" ToolTip="Close (Esc)"/>
+                <StackPanel>
+                    <TextBlock Text="{Binding Title}" Style="{StaticResource SectionHeader}" Margin="0"/>
+                    <TextBlock Text="Arrow keys to move, Enter to pick. Batches are in first-expiry-first-out order unless LIFO is chosen; red rows cannot be sold."
+                               FontSize="11" Foreground="{StaticResource TextSecondaryBrush}"/>
+                </StackPanel>
+            </DockPanel>
+            <TextBlock DockPanel.Dock="Bottom" Text="{Binding Message}" Foreground="{StaticResource DangerBrush}" Margin="0,8,0,0" TextWrapping="Wrap"
+                       Visibility="{Binding Message, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+            <DataGrid x:Name="BatchGrid" ItemsSource="{Binding Batches}" SelectedItem="{Binding SelectedBatch}" Style="{StaticResource ModernDataGrid}"
+                      RowStyle="{StaticResource BillingBatchRow}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
+                      MouseDoubleClick="OnBatchDoubleClick">
+                <DataGrid.InputBindings>
+                    <KeyBinding Key="Enter" Command="{Binding PickCommand}" CommandParameter="{Binding SelectedBatch}"/>
+                </DataGrid.InputBindings>
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="BATCH NO" Width="1.4*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding BatchNumber}" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding ExpiryHint}" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="PACK" Binding="{Binding PackDisplay}" Width="60"/>
+                    <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryLabel}" Width="60"/>
+                    <DataGridTextColumn Header="STATUS" Binding="{Binding StatusLabel}" Width="95"/>
+                    <DataGridTextColumn Header="MRP ₹" Binding="{Binding Mrp, StringFormat=N2}" Width="75"/>
+                    <DataGridTextColumn Header="SALE RATE ₹" Binding="{Binding SaleRate, StringFormat=N2}" Width="85"/>
+                    <DataGridTextColumn Header="MARGIN %" Binding="{Binding MarginPercent, StringFormat=0.#}" Width="70"/>
+                    <DataGridTextColumn Header="DISC %" Binding="{Binding DiscountPercent, StringFormat=0.##}" Width="55"/>
+                    <DataGridTextColumn Header="GST %" Binding="{Binding GstPercent, StringFormat=0.##}" Width="55"/>
+                    <DataGridTextColumn Header="STOCK QTY" Binding="{Binding StockDisplay}" Width="85" FontWeight="SemiBold"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+    </Border>
+</UserControl>

@@ -1,0 +1,85 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.Purchases.Views.PurchaseSupplierStatementPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.Purchases.ViewModels"
+             xmlns:local="clr-namespace:MedicalShopManager.App.Modules.Purchases.Views"
+             mc:Ignorable="d"
+             local:PurchasesFocus.KeyboardForm="True"
+             d:DataContext="{d:DesignInstance Type=vm:PurchaseSupplierStatementViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="PurchasesStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="F5" Command="{Binding LoadStatementCommand}"/>
+        <KeyBinding Key="P" Modifiers="Control" Command="{Binding PrintCommand}"/>
+    </UserControl.InputBindings>
+
+    <DockPanel Margin="0,0,8,0">
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+            <Button DockPanel.Dock="Right" Content="Print (Ctrl+P)" Style="{StaticResource SecondaryButton}" Command="{Binding PrintCommand}" VerticalAlignment="Center"/>
+            <StackPanel>
+                <TextBlock Text="Distributor Statement" Style="{StaticResource PageTitle}" Margin="0"/>
+                <TextBlock FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"
+                           Text="Credit = bills (you owe more), Debit = payments and debit notes. Balance Cr = payable to the distributor."/>
+            </StackPanel>
+        </DockPanel>
+
+        <Border DockPanel.Dock="Top" Style="{StaticResource CardStyle}" Padding="12,8" Margin="0,0,0,10">
+            <WrapPanel>
+                <StackPanel Style="{StaticResource PurchaseField}" Width="280">
+                    <TextBlock Text="DISTRIBUTOR" Style="{StaticResource PurchaseLabel}"/>
+                    <ComboBox ItemsSource="{Binding Suppliers}" SelectedItem="{Binding SelectedSupplier}" DisplayMemberPath="Name" Height="30" IsTextSearchEnabled="True"/>
+                </StackPanel>
+                <StackPanel Style="{StaticResource PurchaseField}" Width="140">
+                    <TextBlock Text="FROM" Style="{StaticResource PurchaseLabel}"/>
+                    <DatePicker SelectedDate="{Binding FromDate}" Height="30"/>
+                </StackPanel>
+                <StackPanel Style="{StaticResource PurchaseField}" Width="140">
+                    <TextBlock Text="TO" Style="{StaticResource PurchaseLabel}"/>
+                    <DatePicker SelectedDate="{Binding ToDate}" Height="30"/>
+                </StackPanel>
+                <StackPanel Style="{StaticResource PurchaseField}">
+                    <TextBlock Text=" " Style="{StaticResource PurchaseLabel}"/>
+                    <Button Content="Show (F5)" Style="{StaticResource PrimaryButton}" Command="{Binding LoadStatementCommand}" Height="30" Padding="14,0"/>
+                </StackPanel>
+            </WrapPanel>
+        </Border>
+
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+            <TextBlock Visibility="{Binding HasStatement, Converter={StaticResource BoolToVisibility}}" FontSize="13">
+                <Run Text="Opening "/><Run Text="{Binding Statement.OpeningBalancePaisa, Mode=OneWay, Converter={StaticResource PaisaToRupees}}" FontWeight="SemiBold"/>
+                <Run Text="  ·  Bills (credit) "/><Run Text="{Binding Statement.TotalCreditPaisa, Mode=OneWay, Converter={StaticResource PaisaToRupees}}"/>
+                <Run Text="  ·  Paid + returns (debit) "/><Run Text="{Binding Statement.TotalDebitPaisa, Mode=OneWay, Converter={StaticResource PaisaToRupees}}"/>
+                <Run Text="  ·  Closing "/><Run Text="{Binding Statement.ClosingBalancePaisa, Mode=OneWay, Converter={StaticResource PaisaToRupees}}" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"/>
+            </TextBlock>
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                       Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}"/>
+        </StackPanel>
+
+        <Border Style="{StaticResource CardStyle}" Padding="0">
+            <Grid>
+                <DataGrid ItemsSource="{Binding Lines}" Style="{StaticResource ModernDataGrid}" AutoGenerateColumns="False" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="DATE" Binding="{Binding Date, StringFormat=dd-MM-yyyy}" Width="95"/>
+                        <DataGridTextColumn Header="TYPE" Binding="{Binding TypeLabel}" Width="90"/>
+                        <DataGridTextColumn Header="DOC NO" Binding="{Binding DocumentNumber}" Width="130"/>
+                        <DataGridTextColumn Header="PARTICULARS" Binding="{Binding Description}" Width="3*"/>
+                        <DataGridTextColumn Header="DEBIT" Binding="{Binding DebitPaisa, Converter={StaticResource PaisaToRupees}}" Width="110"/>
+                        <DataGridTextColumn Header="CREDIT" Binding="{Binding CreditPaisa, Converter={StaticResource PaisaToRupees}}" Width="110"/>
+                        <DataGridTextColumn Header="BALANCE" Binding="{Binding BalancePaisa, Converter={StaticResource PaisaToRupees}}" Width="120" FontWeight="SemiBold"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="No transactions in this period" Style="{StaticResource PurchaseEmptyTitle}"/>
+                    <TextBlock Text="Choose a distributor and dates, then press F5." Style="{StaticResource PurchaseEmptyHint}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </DockPanel>
+</UserControl>

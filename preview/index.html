@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medical Shop Manager — Interactive App Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0078D4;
+      --primary-hover: #106EBE;
+      --primary-light: #E6F2FF;
+      --success: #107C10;
+      --success-bg: #DFF6DD;
+      --warning: #F7630C;
+      --warning-bg: #FFF4CE;
+      --danger: #C42B1C;
+      --danger-bg: #FDE7E9;
+      --bg: #F5F5F5;
+      --surface: #FFFFFF;
+      --sidebar: #F0F0F0;
+      --sidebar-hover: #E8E8E8;
+      --sidebar-active: #E0E8F0;
+      --border: #E5E5E5;
+      --border-strong: #CCCCCC;
+      --divider: #F0F0F0;
+      --text-primary: #1A1A1A;
+      --text-secondary: #606060;
+      --text-tertiary: #999999;
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      background: #0f172a;
+      background: radial-gradient(circle at 50% 10%, #1e293b 0%, #090d16 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    .preview-header-bar {
+      width: 100%;
+      max-width: 1380px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      color: #94a3b8;
+      font-size: 13px;
+    }
+
+    .preview-header-bar .badge {
+      background: #0284c7;
+      color: white;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-right: 8px;
+    }
+
+    /* Windows 11 Window Frame */
+    .app-window {
+      width: 100%;
+      max-width: 1380px;
+      height: 840px;
+      background: var(--bg);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      border: 1px solid rgba(0,0,0,0.15);
+    }
+
+    /* Windows 11 Title Bar */
+    .title-bar {
+      height: 36px;
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      user-select: none;
+      -webkit-app-region: drag;
+    }
+
+    .title-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .title-icon {
+      width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary);
+      border-radius: 3px;
+      color: white;
+      font-size: 10px;
+      font-weight: bold;
+    }
+
+    .title-controls {
+      display: flex;
+      align-items: center;
+    }
+
+    .window-btn {
+      width: 44px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #555;
+      font-size: 11px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .window-btn:hover {
+      background: #E5E5E5;
+    }
+
+    .window-btn.close:hover {
+      background: #E81123;
+      color: white;
+    }
+
+    /* App Layout */
+    .app-layout {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--divider);
+    }
+
+    .shop-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .shop-logo .pill-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--primary);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+      box-shadow: 0 2px 6px rgba(0,120,212,0.3);
+    }
+
+    .shop-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+
+    .shop-sub {
+      font-size: 11px;
+      color: var(--text-tertiary);
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 8px;
+    }
+
+    .nav-section-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 10px 12px 4px 12px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-bottom: 2px;
+    }
+
+    .nav-item:hover {
+      background: var(--sidebar-hover);
+    }
+
+    .nav-item.active {
+      background: var(--sidebar-active);
+      color: var(--primary);
+      font-weight: 600;
+      position: relative;
+    }
+
+    .nav-item.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 6px;
+      bottom: 6px;
+      width: 3px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+
+    .nav-item-icon {
+      font-size: 16px;
+      width: 18px;
+      text-align: center;
+    }
+
+    .sidebar-footer {
+      padding: 12px;
+      border-top: 1px solid var(--divider);
+      background: #F8F8F8;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .sync-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .sync-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 0 2px rgba(16, 124, 16, 0.2);
+    }
+
+    /* Content Area */
+    .content-area {
+      background: var(--bg);
+      overflow-y: auto;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .page-view {
+      display: none;
+    }
+
+    .page-view.active {
+      display: block;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .page-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      box-shadow: var(--shadow-card);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .kpi-value.primary { color: var(--primary); }
+    .kpi-value.success { color: var(--success); }
+    .kpi-value.warning { color: var(--warning); }
+    .kpi-value.danger { color: var(--danger); }
+
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      margin-top: 4px;
+    }
+
+    /* Card Panels */
+    .panel-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 16px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* Modern Table */
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      text-align: left;
+    }
+
+    th {
+      background: #FAFAFA;
+      color: var(--text-secondary);
+      font-weight: 600;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--divider);
+      color: var(--text-primary);
+    }
+
+    tr:hover td {
+      background: #F9FAFB;
+    }
+
+    /* Badges */
+    .badge-pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-success { background: var(--success-bg); color: var(--success); }
+    .badge-warning { background: var(--warning-bg); color: var(--warning); }
+    .badge-danger { background: var(--danger-bg); color: var(--danger); }
+    .badge-info { background: var(--primary-light); color: var(--primary); }
+
+    /* POS Layout */
+    .pos-layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      height: calc(100% - 40px);
+    }
+
+    .search-bar-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .input-box {
+      flex: 1;
+      height: 38px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      padding: 0 12px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .input-box:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
+    }
+
+    .btn {
+      height: 38px;
+      padding: 0 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-outline {
+      background: white;
+      border-color: var(--border-strong);
+      color: var(--text-primary);
+    }
+
+    .btn-outline:hover {
+      background: #F8F8F8;
+    }
+
+    /* Invoice Summary Panel */
+    .summary-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+    }
+
+    .summary-row.total {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 2px dashed var(--border);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .summary-row.total span.val {
+      color: var(--primary);
+    }
+
+    .quick-pay-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin: 16px 0;
+    }
+
+    .pay-btn {
+      height: 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      background: white;
+      font-size: 11px;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+
+    .pay-btn:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .pay-btn.selected {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(2px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: white;
+      width: 440px;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      padding: 24px;
+      animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalPop {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .chart-container {
+      height: 220px;
+      width: 100%;
+      position: relative;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="preview-header-bar">
+    <div>
+      <span class="badge">Live Preview</span>
+      <strong>Medical Shop Manager</strong> — Windows 11 Fluent Desktop Application Simulator
+    </div>
+    <div>Click sidebar tabs below to test navigation, billing calculations, and inventory views</div>
+  </div>
+
+  <!-- Windows 11 Desktop Application Shell -->
+  <div class="app-window">
+    
+    <!-- Title Bar -->
+    <div class="title-bar">
+      <div class="title-left">
+        <div class="title-icon">💊</div>
+        <span>Medical Shop Manager — Apollo Pharmacy & Chemists (GSTIN: 27AABCA1234F1Z5)</span>
+      </div>
+      <div class="title-controls">
+        <div class="window-btn" title="Minimize">─</div>
+        <div class="window-btn" title="Maximize">□</div>
+        <div class="window-btn close" title="Close">✕</div>
+      </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="app-layout">
+      
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <div class="shop-logo">
+            <div class="pill-icon">⚕</div>
+            <div>
+              <div class="shop-name">Apollo Chemists</div>
+              <div class="shop-sub">Offline Pharmacy System</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-nav">
+          <div class="nav-section-title">Main</div>
+          <div class="nav-item active" onclick="switchTab('dashboard', this)">
+            <span class="nav-item-icon">📊</span>
+            <span>Dashboard</span>
+          </div>
+          <div class="nav-item" onclick="switchTab('billing', this)">
+            <span class="nav-item-icon">🧾</span>
+            <span>New Bill / POS</span>
+          </div>
+
+          <div class="nav-section-title">Inventory</div>
+          <div class="nav-item" onclick="switchTab('medicines', this)">
+            <span class="nav-item-icon">💊</span>
+            <span>Medicines</span>
+          </div>
+          <div class="nav-item" onclick="switchTab('expiry', this)">
+            <span class="nav-item-icon">⏳</span>
+            <span>Batch &amp; Expiry</span>
+          </div>
+
+          <div class="nav-section-title">Transactions</div>
+          <div class="nav-item" onclick="switchTab('purchases', this)">
+            <span class="nav-item-icon">📦</span>
+            <span>Purchases</span>
+          </div>
+          <div class="nav-item" onclick="switchTab('suppliers', this)">
+            <span class="nav-item-icon">🏢</span>
+            <span>Suppliers</span>
+          </div>
+          <div class="nav-item" onclick="switchTab('sales-history', this)">
+            <span class="nav-item-icon">📜</span>
+            <span>Sales History</span>
+          </div>
+
+          <div class="nav-section-title">Reports &amp; System</div>
+          <div class="nav-item" onclick="switchTab('reports', this)">
+            <span class="nav-item-icon">📈</span>
+            <span>Reports &amp; GST</span>
+          </div>
+          <div class="nav-item" onclick="switchTab('excel', this)">
+            <span class="nav-item-icon">📗</span>
+            <span>Excel 14-Sheet Sync</span>
+          </div>
+          <div class="nav-item" onclick="switchTab('backup', this)">
+            <span class="nav-item-icon">💾</span>
+            <span>Backup &amp; Restore</span>
+          </div>
+          <div class="nav-item" onclick="switchTab('settings', this)">
+            <span class="nav-item-icon">⚙️</span>
+            <span>Settings</span>
+          </div>
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="sync-status">
+            <span class="sync-dot"></span>
+            <span>Excel Synced (14 sheets)</span>
+          </div>
+          <div style="color: #888; font-size: 10px;">
+            👤 Pharmacist: Dinesh (Admin)
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Area -->
+      <div class="content-area">
+        
+        <!-- ═════════ 1. DASHBOARD VIEW ═════════ -->
+        <div id="view-dashboard" class="page-view active">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Pharmacy Dashboard</h1>
+              <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">
+                Real-time pharmacy metrics &amp; inventory valuation
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-outline" onclick="switchTab('expiry', document.querySelectorAll('.nav-item')[3])">⚠️ View 8 Expiry Alerts</button>
+              <button class="btn btn-primary" onclick="switchTab('billing', document.querySelectorAll('.nav-item')[1])">+ Start New Bill (F2)</button>
+            </div>
+          </div>
+
+          <!-- KPI Cards Row 1 -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-label">Today's Sales</div>
+              <div class="kpi-value primary">₹42,850.00</div>
+              <div class="kpi-sub">84 transactions today</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Today's Purchases</div>
+              <div class="kpi-value">₹18,400.00</div>
+              <div class="kpi-sub">3 supplier invoices</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Gross Profit (Est.)</div>
+              <div class="kpi-value success">₹9,420.00</div>
+              <div class="kpi-sub">Margin: 21.9%</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Active Medicines</div>
+              <div class="kpi-value">1,248</div>
+              <div class="kpi-sub">In 18 categories</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Total Stock Units</div>
+              <div class="kpi-value">18,450</div>
+              <div class="kpi-sub">Valuation: ₹6,82,400</div>
+            </div>
+          </div>
+
+          <!-- KPI Cards Row 2 -->
+          <div class="kpi-grid">
+            <div class="kpi-card" style="border-left: 3px solid var(--warning);">
+              <div class="kpi-label">Low Stock Alerts</div>
+              <div class="kpi-value warning">14</div>
+              <div class="kpi-sub">Under reorder level</div>
+            </div>
+            <div class="kpi-card" style="border-left: 3px solid var(--warning);">
+              <div class="kpi-label">Near Expiry (&lt;90d)</div>
+              <div class="kpi-value warning">8</div>
+              <div class="kpi-sub">Worth ₹4,120</div>
+            </div>
+            <div class="kpi-card" style="border-left: 3px solid var(--danger);">
+              <div class="kpi-label">Expired Batches</div>
+              <div class="kpi-value danger">2</div>
+              <div class="kpi-sub">Sales locked (FEFO)</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Supplier Payables</div>
+              <div class="kpi-value">₹74,200.00</div>
+              <div class="kpi-sub">5 outstanding bills</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">GST Payable (Net)</div>
+              <div class="kpi-value primary">₹3,856.50</div>
+              <div class="kpi-sub">Output - Input Credit</div>
+            </div>
+          </div>
+
+          <!-- Sales Trends & Fast Moving Items -->
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
+            <div class="panel-card">
+              <div class="panel-header">
+                <span class="panel-title">📈 7-Day Sales &amp; Revenue Velocity</span>
+                <span style="font-size: 11px; color: var(--text-tertiary);">Paisa-exact calculations</span>
+              </div>
+              <svg viewBox="0 0 700 180" style="width: 100%; height: 180px;">
+                <defs>
+                  <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#0078D4" stop-opacity="0.25"/>
+                    <stop offset="100%" stop-color="#0078D4" stop-opacity="0.0"/>
+                  </linearGradient>
+                </defs>
+                <!-- Grid Lines -->
+                <line x1="50" y1="30" x2="680" y2="30" stroke="#E5E5E5" stroke-dasharray="3,3"/>
+                <line x1="50" y1="80" x2="680" y2="80" stroke="#E5E5E5" stroke-dasharray="3,3"/>
+                <line x1="50" y1="130" x2="680" y2="130" stroke="#E5E5E5" stroke-dasharray="3,3"/>
+                <text x="15" y="35" fill="#999" font-size="10">₹50k</text>
+                <text x="15" y="85" fill="#999" font-size="10">₹30k</text>
+                <text x="15" y="135" fill="#999" font-size="10">₹10k</text>
+                <!-- Area -->
+                <polygon points="50,150 140,110 230,125 320,80 410,95 500,45 590,55 680,35 680,150 50,150" fill="url(#grad)"/>
+                <!-- Line -->
+                <polyline points="50,150 140,110 230,125 320,80 410,95 500,45 590,55 680,35" fill="none" stroke="#0078D4" stroke-width="3" stroke-linecap="round"/>
+                <!-- Dots -->
+                <circle cx="140" cy="110" r="4" fill="#0078D4"/>
+                <circle cx="230" cy="125" r="4" fill="#0078D4"/>
+                <circle cx="320" cy="80" r="4" fill="#0078D4"/>
+                <circle cx="410" cy="95" r="4" fill="#0078D4"/>
+                <circle cx="500" cy="45" r="4" fill="#0078D4"/>
+                <circle cx="590" cy="55" r="4" fill="#0078D4"/>
+                <circle cx="680" cy="35" r="5" fill="#0078D4" stroke="#FFF" stroke-width="2"/>
+                <!-- Labels -->
+                <text x="125" y="168" fill="#666" font-size="11">Mon</text>
+                <text x="215" y="168" fill="#666" font-size="11">Tue</text>
+                <text x="305" y="168" fill="#666" font-size="11">Wed</text>
+                <text x="395" y="168" fill="#666" font-size="11">Thu</text>
+                <text x="485" y="168" fill="#666" font-size="11">Fri</text>
+                <text x="575" y="168" fill="#666" font-size="11">Sat</text>
+                <text x="665" y="168" fill="#0078D4" font-weight="bold" font-size="11">Today</text>
+              </svg>
+            </div>
+
+            <div class="panel-card">
+              <div class="panel-header">
+                <span class="panel-title">🔥 Fast Moving Dispensed</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 6px 0; border-bottom: 1px solid var(--divider);">
+                  <div><strong>Augmentin 625 Duo</strong><br><span style="color: #888; font-size: 10px;">Amoxicillin + Clav</span></div>
+                  <span class="badge-pill badge-info">142 strips</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 6px 0; border-bottom: 1px solid var(--divider);">
+                  <div><strong>Pan-D Capsule</strong><br><span style="color: #888; font-size: 10px;">Pantoprazole + Domp</span></div>
+                  <span class="badge-pill badge-info">118 strips</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 6px 0; border-bottom: 1px solid var(--divider);">
+                  <div><strong>Crocin 650mg</strong><br><span style="color: #888; font-size: 10px;">Paracetamol</span></div>
+                  <span class="badge-pill badge-info">96 strips</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 6px 0;">
+                  <div><strong>Azithral 500mg</strong><br><span style="color: #888; font-size: 10px;">Azithromycin</span></div>
+                  <span class="badge-pill badge-info">74 strips</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═════════ 2. POINT OF SALE (NEW BILL) ═════════ -->
+        <div id="view-billing" class="page-view">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Point of Sale — New Retail Bill</h1>
+              <div style="font-size: 12px; color: var(--text-secondary);">
+                Keyboard-first POS • Auto FEFO batch selection • Indian GST splitting
+              </div>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <span class="badge-pill badge-info">F2: Search</span>
+              <span class="badge-pill badge-info">Ctrl+Enter: Settle</span>
+              <span class="badge-pill badge-info">Esc: Clear</span>
+            </div>
+          </div>
+
+          <div class="pos-layout">
+            
+            <!-- Left Cart & Search -->
+            <div style="display: flex; flex-direction: column;">
+              
+              <!-- Search & Fast Add Bar -->
+              <div class="panel-card" style="padding: 12px; margin-bottom: 12px;">
+                <div class="search-bar-row">
+                  <input type="text" id="med-search-input" class="input-box" placeholder="🔍 Search medicine by brand name, generic formula, or scan barcode (e.g. Crocin, Augmentin, Pan-D)..." onkeyup="handleSearchInput(event)">
+                  <button class="btn btn-primary" onclick="addSampleMedicine('Augmentin 625 Duo', 'AUG-9921', '11/2026', 201.20, 18, 1)">+ Add to Bill</button>
+                </div>
+                <div style="display: flex; gap: 6px; font-size: 11px; color: var(--text-tertiary);">
+                  <span>Quick additions:</span>
+                  <a href="javascript:void(0)" onclick="addSampleMedicine('Crocin 650mg', 'CR-4401', '03/2027', 32.50, 12, 2)" style="color: var(--primary);">+ Crocin 650</a> •
+                  <a href="javascript:void(0)" onclick="addSampleMedicine('Pan-D Capsule', 'PD-8832', '08/2026', 145.00, 12, 1)" style="color: var(--primary);">+ Pan-D</a> •
+                  <a href="javascript:void(0)" onclick="addSampleMedicine('Shelcal 500mg', 'SH-1029', '01/2027', 119.50, 12, 1)" style="color: var(--primary);">+ Shelcal 500</a> •
+                  <a href="javascript:void(0)" onclick="addSampleMedicine('Telma 40mg', 'TL-5511', '10/2026', 228.00, 12, 1)" style="color: var(--primary);">+ Telma 40</a>
+                </div>
+              </div>
+
+              <!-- Cart Table -->
+              <div class="panel-card" style="flex: 1; padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+                <div style="padding: 12px 16px; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 13px; display: flex; justify-content: space-between;">
+                  <span>Invoice Items (<span id="cart-item-count">3</span>)</span>
+                  <span style="color: var(--success); font-size: 11px;">✓ FEFO Allocation Enforced</span>
+                </div>
+                
+                <div class="table-container" style="border: none; flex: 1;">
+                  <table id="cart-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 35%;">Medicine &amp; Generic</th>
+                        <th>Batch</th>
+                        <th>Expiry</th>
+                        <th style="width: 80px;">Qty</th>
+                        <th>MRP (₹)</th>
+                        <th>GST</th>
+                        <th>Total (₹)</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="cart-body">
+                      <!-- Rendered by JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Summary & Payment -->
+            <div class="summary-panel">
+              <div style="font-weight: 600; font-size: 14px; margin-bottom: 12px;">Customer Details</div>
+              <input type="text" class="input-box" value="Walk-in Customer" style="margin-bottom: 8px;" placeholder="Customer Name">
+              <input type="text" class="input-box" value="+91 98765 43210" style="margin-bottom: 16px;" placeholder="Phone / Mobile">
+
+              <div style="font-weight: 600; font-size: 14px; margin-bottom: 12px;">Tax &amp; Bill Breakdown</div>
+              <div class="summary-row">
+                <span>Items Subtotal:</span>
+                <span id="sum-subtotal">₹444.70</span>
+              </div>
+              <div class="summary-row">
+                <span>CGST (6% / 9%):</span>
+                <span id="sum-cgst">₹32.55</span>
+              </div>
+              <div class="summary-row">
+                <span>SGST (6% / 9%):</span>
+                <span id="sum-sgst">₹32.55</span>
+              </div>
+              <div class="summary-row">
+                <span>Special Discount:</span>
+                <span style="color: var(--success);" id="sum-discount">-₹10.00</span>
+              </div>
+              <div class="summary-row">
+                <span>Round Off:</span>
+                <span id="sum-roundoff">+₹0.20</span>
+              </div>
+
+              <div class="summary-row total">
+                <span>Net Payable:</span>
+                <span class="val" id="sum-net">₹500.00</span>
+              </div>
+
+              <div style="font-weight: 600; font-size: 12px; margin-top: 14px; color: var(--text-secondary);">Payment Mode</div>
+              <div class="quick-pay-grid">
+                <div class="pay-btn selected" onclick="selectPay(this)">
+                  <span style="font-size: 16px;">📱</span>
+                  <span>UPI / QR</span>
+                </div>
+                <div class="pay-btn" onclick="selectPay(this)">
+                  <span style="font-size: 16px;">💵</span>
+                  <span>Cash</span>
+                </div>
+                <div class="pay-btn" onclick="selectPay(this)">
+                  <span style="font-size: 16px;">💳</span>
+                  <span>Card</span>
+                </div>
+              </div>
+
+              <button class="btn btn-success" style="width: 100%; height: 44px; font-size: 15px;" onclick="completeSaleModal()">
+                Complete Sale (Ctrl+Enter)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═════════ 3. MEDICINES CATALOG ═════════ -->
+        <div id="view-medicines" class="page-view">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Medicines Catalog</h1>
+              <div style="font-size: 12px; color: var(--text-secondary);">
+                1,248 Master drugs • HSN code mapping • Schedule H/H1 compliance
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="alert('Opening Add Medicine Master form...')">+ Add New Medicine</button>
+          </div>
+
+          <div class="panel-card" style="padding: 12px; margin-bottom: 12px; display: flex; gap: 10px;">
+            <input type="text" class="input-box" placeholder="Filter medicines by name, generic, barcode...">
+            <select class="input-box" style="width: 180px;">
+              <option>All Categories</option>
+              <option>Antibiotics</option>
+              <option>Analgesics / NSAID</option>
+              <option>Antacids / PPI</option>
+              <option>Cardiovascular</option>
+            </select>
+            <button class="btn btn-outline">Filter</button>
+          </div>
+
+          <div class="panel-card" style="padding: 0; overflow: hidden;">
+            <div class="table-container" style="border: none;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Item Name</th>
+                    <th>Generic Formula</th>
+                    <th>Category</th>
+                    <th>Schedule</th>
+                    <th>GST</th>
+                    <th>Stock Units</th>
+                    <th>MRP (₹)</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Augmentin 625 Duo</strong></td>
+                    <td>Amoxicillin 500mg + Clavulanic 125mg</td>
+                    <td>Antibiotics</td>
+                    <td><span class="badge-pill badge-danger">Schedule H</span></td>
+                    <td>18%</td>
+                    <td>240 strips</td>
+                    <td>₹201.20</td>
+                    <td><span class="badge-pill badge-success">In Stock</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Crocin 650mg</strong></td>
+                    <td>Paracetamol 650mg</td>
+                    <td>Analgesics</td>
+                    <td><span class="badge-pill badge-info">OTC</span></td>
+                    <td>12%</td>
+                    <td>180 strips</td>
+                    <td>₹32.50</td>
+                    <td><span class="badge-pill badge-success">In Stock</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Pan-D Capsule</strong></td>
+                    <td>Pantoprazole 40mg + Domperidone 30mg</td>
+                    <td>Antacids / PPI</td>
+                    <td><span class="badge-pill badge-danger">Schedule H</span></td>
+                    <td>12%</td>
+                    <td>95 strips</td>
+                    <td>₹145.00</td>
+                    <td><span class="badge-pill badge-success">In Stock</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Azithral 500mg</strong></td>
+                    <td>Azithromycin 500mg</td>
+                    <td>Antibiotics</td>
+                    <td><span class="badge-pill badge-danger">Schedule H</span></td>
+                    <td>12%</td>
+                    <td>12 strips</td>
+                    <td>₹119.50</td>
+                    <td><span class="badge-pill badge-warning">Low Stock</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Telma 40mg</strong></td>
+                    <td>Telmisartan 40mg</td>
+                    <td>Cardiovascular</td>
+                    <td><span class="badge-pill badge-danger">Schedule H</span></td>
+                    <td>12%</td>
+                    <td>310 strips</td>
+                    <td>₹228.00</td>
+                    <td><span class="badge-pill badge-success">In Stock</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═════════ 4. BATCH & EXPIRY TRACKER ═════════ -->
+        <div id="view-expiry" class="page-view">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Batch &amp; Expiry Monitor (FEFO)</h1>
+              <div style="font-size: 12px; color: var(--text-secondary);">
+                First Expiry First Out dispensing enforcement • Expired batch auto-lock
+              </div>
+            </div>
+            <button class="btn btn-outline" onclick="alert('Exporting Expiry Report to Excel mirror...')">📥 Export to Excel</button>
+          </div>
+
+          <div class="kpi-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 16px;">
+            <div class="kpi-card" style="border-left: 4px solid var(--success);">
+              <div class="kpi-label">Active Valid Batches</div>
+              <div class="kpi-value success">1,412</div>
+              <div class="kpi-sub">&gt; 6 months validity</div>
+            </div>
+            <div class="kpi-card" style="border-left: 4px solid var(--warning);">
+              <div class="kpi-label">Near Expiry (&lt; 90 Days)</div>
+              <div class="kpi-value warning">8</div>
+              <div class="kpi-sub">Priority dispensing queue</div>
+            </div>
+            <div class="kpi-card" style="border-left: 4px solid var(--danger);">
+              <div class="kpi-label">Expired Batches</div>
+              <div class="kpi-value danger">2</div>
+              <div class="kpi-sub">Disallowed from sales invoice</div>
+            </div>
+          </div>
+
+          <div class="panel-card" style="padding: 0; overflow: hidden;">
+            <div class="table-container" style="border: none;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Medicine</th>
+                    <th>Batch No.</th>
+                    <th>Expiry Date</th>
+                    <th>Days Remaining</th>
+                    <th>Quantity</th>
+                    <th>Purchase Rate</th>
+                    <th>FEFO Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="background: #FFF5F5;">
+                    <td><strong>Insulin Glargine 100IU</strong></td>
+                    <td><code>INS-1088</code></td>
+                    <td style="color: var(--danger); font-weight: bold;">09/2024</td>
+                    <td><span class="badge-pill badge-danger">-18 days</span></td>
+                    <td>6 vials</td>
+                    <td>₹450.00</td>
+                    <td><span class="badge-pill badge-danger">EXPIRED (LOCKED)</span></td>
+                    <td><button class="btn btn-outline" style="height: 26px; padding: 0 8px; font-size: 11px;">Write-off</button></td>
+                  </tr>
+                  <tr style="background: #FFFBF0;">
+                    <td><strong>Amoxicillin 250mg Dry Syr</strong></td>
+                    <td><code>AMX-0012</code></td>
+                    <td style="color: var(--warning); font-weight: bold;">11/2026</td>
+                    <td><span class="badge-pill badge-warning">28 days</span></td>
+                    <td>14 bottles</td>
+                    <td>₹38.00</td>
+                    <td><span class="badge-pill badge-warning">NEAR EXPIRY</span></td>
+                    <td><button class="btn btn-outline" style="height: 26px; padding: 0 8px; font-size: 11px;">Return to Supplier</button></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Augmentin 625 Duo</strong></td>
+                    <td><code>AUG-9921</code></td>
+                    <td>11/2026</td>
+                    <td>380 days</td>
+                    <td>120 strips</td>
+                    <td>₹165.00</td>
+                    <td><span class="badge-pill badge-success">Valid</span></td>
+                    <td><button class="btn btn-outline" style="height: 26px; padding: 0 8px; font-size: 11px;">View Ledger</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Settle Sale Modal -->
+  <div id="settle-modal" class="modal-backdrop">
+    <div class="modal-box">
+      <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px; color: var(--success);">
+        ✓ Sale Completed &amp; Recorded!
+      </div>
+      <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">
+        Invoice #INV-2026-00482 generated • SQLite WAL transaction committed
+      </div>
+
+      <div style="background: #F9FAFB; border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-size: 12px; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span>Invoice Amount:</span>
+          <strong id="modal-amount">₹500.00</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span>Payment Mode:</span>
+          <span>UPI (PhonePe / GPay)</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+          <span>Stock Movement:</span>
+          <span style="color: var(--primary);">Ledger updated (-4 units)</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span>Excel Sync Queue:</span>
+          <span style="color: var(--success);">Enqueued for Sheet 1 &amp; 2</span>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-outline" style="flex: 1;" onclick="closeModal()">Close (Esc)</button>
+        <button class="btn btn-primary" style="flex: 1;" onclick="alert('Print thermal receipt dialog...'); closeModal()">🖨️ Print Receipt</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Sample Cart Data
+    let cart = [
+      { name: 'Augmentin 625 Duo', batch: 'AUG-9921', expiry: '11/2026', mrp: 201.20, gst: 18, qty: 1 },
+      { name: 'Crocin 650mg', batch: 'CR-4401', expiry: '03/2027', mrp: 32.50, gst: 12, qty: 2 },
+      { name: 'Pan-D Capsule', batch: 'PD-8832', expiry: '08/2026', mrp: 145.00, gst: 12, qty: 1 }
+    ];
+
+    function renderCart() {
+      const tbody = document.getElementById('cart-body');
+      tbody.innerHTML = '';
+      
+      let subtotal = 0;
+      let totalGst = 0;
+
+      cart.forEach((item, index) => {
+        const itemTotal = item.mrp * item.qty;
+        const gstAmount = (itemTotal * item.gst) / (100 + item.gst);
+        subtotal += (itemTotal - gstAmount);
+        totalGst += gstAmount;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${item.name}</strong></td>
+          <td><code>${item.batch}</code></td>
+          <td>${item.expiry}</td>
+          <td>
+            <input type="number" value="${item.qty}" min="1" max="100" style="width: 50px; padding: 2px 4px; border: 1px solid #CCC; border-radius: 4px;" onchange="updateQty(${index}, this.value)">
+          </td>
+          <td>₹${item.mrp.toFixed(2)}</td>
+          <td>${item.gst}%</td>
+          <td><strong>₹${itemTotal.toFixed(2)}</strong></td>
+          <td>
+            <span style="color: #C42B1C; cursor: pointer; font-size: 14px;" onclick="removeItem(${index})">✕</span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('cart-item-count').textContent = cart.length;
+      
+      const discount = 10.00;
+      const cgst = totalGst / 2;
+      const sgst = totalGst / 2;
+      const gross = subtotal + totalGst - discount;
+      const net = Math.round(gross);
+      const roundoff = net - gross;
+
+      document.getElementById('sum-subtotal').textContent = '₹' + subtotal.toFixed(2);
+      document.getElementById('sum-cgst').textContent = '₹' + cgst.toFixed(2);
+      document.getElementById('sum-sgst').textContent = '₹' + sgst.toFixed(2);
+      document.getElementById('sum-discount').textContent = '-₹' + discount.toFixed(2);
+      document.getElementById('sum-roundoff').textContent = (roundoff >= 0 ? '+' : '') + '₹' + roundoff.toFixed(2);
+      document.getElementById('sum-net').textContent = '₹' + net.toFixed(2);
+      document.getElementById('modal-amount').textContent = '₹' + net.toFixed(2);
+    }
+
+    function updateQty(index, newQty) {
+      cart[index].qty = parseInt(newQty) || 1;
+      renderCart();
+    }
+
+    function removeItem(index) {
+      cart.splice(index, 1);
+      renderCart();
+    }
+
+    function addSampleMedicine(name, batch, expiry, mrp, gst, qty) {
+      cart.push({ name, batch, expiry, mrp, gst, qty });
+      renderCart();
+    }
+
+    function handleSearchInput(e) {
+      if (e.key === 'Enter') {
+        const val = e.target.value.trim();
+        if (val) {
+          addSampleMedicine(val, 'BAT-' + Math.floor(1000 + Math.random() * 9000), '12/2026', 120.00, 12, 1);
+          e.target.value = '';
+        }
+      }
+    }
+
+    function switchTab(viewId, navEl) {
+      // Nav active class
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      if (navEl) navEl.classList.add('active');
+
+      // Views
+      document.querySelectorAll('.page-view').forEach(view => view.classList.remove('active'));
+      const target = document.getElementById('view-' + viewId);
+      if (target) {
+        target.classList.add('active');
+      } else {
+        alert('Showing view for: ' + viewId);
+      }
+    }
+
+    function selectPay(el) {
+      document.querySelectorAll('.pay-btn').forEach(btn => btn.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+
+    function completeSaleModal() {
+      if (cart.length === 0) {
+        alert('Cart is empty. Add medicines first.');
+        return;
+      }
+      document.getElementById('settle-modal').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('settle-modal').classList.remove('open');
+      cart = [];
+      renderCart();
+    }
+
+    // Initialize cart on load
+    renderCart();
+  </script>
+</body>
+</html>

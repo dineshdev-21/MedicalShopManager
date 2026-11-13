@@ -1,0 +1,82 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.Billing.Views.CustomersPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.Billing.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:CustomersViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="BillingStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="F2" Command="{Binding AddCommand}"/>
+        <KeyBinding Key="F4" Command="{Binding EditCommand}"/>
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
+        <KeyBinding Key="Escape" Command="{Binding CloseEditorCommand}"/>
+    </UserControl.InputBindings>
+
+    <Grid>
+        <DockPanel Margin="0,0,8,0">
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="Refresh (F5)" Style="{StaticResource SecondaryButton}" Command="{Binding RefreshCommand}" Margin="0,0,8,0"/>
+                    <Button Content="Edit (F4)" Style="{StaticResource SecondaryButton}" Command="{Binding EditCommand}" Margin="0,0,8,0"/>
+                    <Button Content="+ Add Customer (F2)" Style="{StaticResource PrimaryButton}" Command="{Binding AddCommand}"/>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="Customers" Style="{StaticResource PageTitle}" Margin="0"/>
+                    <TextBlock FontSize="12" Foreground="{StaticResource TextSecondaryBrush}">
+                        <Run Text="Total to receive: "/><Run Text="{Binding TotalReceivablePaisa, Mode=OneWay, Converter={StaticResource PaisaToRupees}}" FontWeight="SemiBold"/>
+                    </TextBlock>
+                </StackPanel>
+            </DockPanel>
+
+            <TextBox DockPanel.Dock="Top" Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}"
+                     Margin="0,0,0,10" ToolTip="Search by name, mobile or GSTIN"/>
+
+            <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold"
+                           Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                           Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}"/>
+            </StackPanel>
+
+            <Border Style="{StaticResource CardStyle}" Padding="0">
+                <Grid>
+                    <DataGrid ItemsSource="{Binding Customers}" SelectedItem="{Binding SelectedCustomer}" Style="{StaticResource ModernDataGrid}"
+                              AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" MouseDoubleClick="OnRowDoubleClick">
+                        <DataGrid.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding EditCommand}" CommandParameter="{Binding SelectedCustomer}"/>
+                            <KeyBinding Key="Delete" Command="{Binding DeleteCommand}" CommandParameter="{Binding SelectedCustomer}"/>
+                        </DataGrid.InputBindings>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="2*"/>
+                            <DataGridTextColumn Header="TYPE" Binding="{Binding KindLabel}" Width="85"/>
+                            <DataGridTextColumn Header="MOBILE" Binding="{Binding Phone}" Width="110"/>
+                            <DataGridTextColumn Header="GSTIN" Binding="{Binding Gstin}" Width="140"/>
+                            <DataGridTextColumn Header="DISC %" Binding="{Binding DefaultDiscountPercent, StringFormat=0.##}" Width="60"/>
+                            <DataGridTextColumn Header="CREDIT DAYS" Binding="{Binding CreditDays}" Width="85"/>
+                            <DataGridTextColumn Header="INVOICES" Binding="{Binding InvoiceCount}" Width="70"/>
+                            <DataGridTextColumn Header="LAST SALE" Binding="{Binding LastSaleDate, StringFormat=dd-MMM-yy}" Width="90"/>
+                            <DataGridTextColumn Header="BALANCE" Binding="{Binding BalanceLabel}" Width="150"/>
+                            <DataGridTextColumn Header="ADDRESS" Binding="{Binding Address}" Width="2*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="No customers yet" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
+                        <TextBlock Text="Press F2 to add one, or add customers while billing." HorizontalAlignment="Center" Foreground="{StaticResource TextTertiaryBrush}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DockPanel>
+
+        <Grid Background="#80000000" Visibility="{Binding IsEditorOpen, Converter={StaticResource BoolToVisibility}}">
+            <ContentControl Content="{Binding Editor}" ContentTemplateSelector="{StaticResource ViewLocator}" IsTabStop="False"/>
+        </Grid>
+    </Grid>
+</UserControl>

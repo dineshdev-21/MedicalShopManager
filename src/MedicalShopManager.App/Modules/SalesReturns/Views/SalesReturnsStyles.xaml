@@ -1,0 +1,140 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- SalesReturns module styles (merged by the SalesReturns views; built on the shared Theme.xaml brushes). -->
+
+    <Style x:Key="SrLabel" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="10"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource TextTertiaryBrush}"/>
+        <Setter Property="Margin" Value="0,0,0,2"/>
+    </Style>
+
+    <Style x:Key="SrValue" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
+
+    <Style x:Key="SrField" TargetType="StackPanel">
+        <Setter Property="Margin" Value="0,0,10,8"/>
+    </Style>
+
+    <Style x:Key="SrInput" TargetType="TextBox" BasedOn="{StaticResource ModernTextBox}">
+        <Setter Property="MinHeight" Value="28"/>
+        <Setter Property="Height" Value="30"/>
+        <Setter Property="Padding" Value="6,4"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="SrNumberInput" TargetType="TextBox" BasedOn="{StaticResource SrInput}">
+        <Setter Property="HorizontalContentAlignment" Value="Right"/>
+    </Style>
+
+    <Style x:Key="SrModeButton" TargetType="RadioButton">
+        <Setter Property="Margin" Value="0,0,16,0"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
+
+    <Style x:Key="SrPill" TargetType="Border">
+        <Setter Property="CornerRadius" Value="10"/>
+        <Setter Property="Padding" Value="8,2"/>
+        <Setter Property="Margin" Value="0,0,6,0"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Background" Value="{StaticResource InfoBgBrush}"/>
+    </Style>
+
+    <Style x:Key="SrDialogCard" TargetType="Border" BasedOn="{StaticResource CardStyle}">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="Padding" Value="20"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <Style x:Key="SrOverlay" TargetType="Grid">
+        <Setter Property="Background" Value="#80000000"/>
+    </Style>
+
+    <Style x:Key="SrErrorList" TargetType="ItemsControl">
+        <Setter Property="Margin" Value="0,6,0,6"/>
+        <Setter Property="ItemTemplate">
+            <Setter.Value>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}" Foreground="{StaticResource DangerBrush}" TextWrapping="Wrap" FontSize="12" Margin="0,1"/>
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="SrTotalLabel" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+        <Setter Property="Margin" Value="0,2,12,2"/>
+    </Style>
+
+    <Style x:Key="SrTotalValue" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="HorizontalAlignment" Value="Right"/>
+        <Setter Property="Margin" Value="0,2"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
+    </Style>
+
+    <Style x:Key="SrFooterItem" TargetType="StackPanel">
+        <Setter Property="Margin" Value="0,0,24,0"/>
+    </Style>
+
+    <Style x:Key="SrEmptyTitle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+    </Style>
+
+    <Style x:Key="SrEmptyHint" TargetType="TextBlock">
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="TextAlignment" Value="Center"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+        <Setter Property="Foreground" Value="{StaticResource TextTertiaryBrush}"/>
+    </Style>
+
+    <Style x:Key="SrKeyHint" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Foreground" Value="{StaticResource TextTertiaryBrush}"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+    </Style>
+
+    <!-- Register rows: cancelled greyed out, overdue / open credit highlighted. -->
+    <Style x:Key="SrStatusRow" TargetType="DataGridRow">
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding StatusLabel}" Value="Overdue">
+                <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+            </DataTrigger>
+            <DataTrigger Binding="{Binding StatusLabel}" Value="Open credit">
+                <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+            </DataTrigger>
+            <DataTrigger Binding="{Binding StatusLabel}" Value="Cancelled">
+                <Setter Property="Foreground" Value="{StaticResource TextTertiaryBrush}"/>
+                <Setter Property="FontStyle" Value="Italic"/>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Return lines: red = expired batch (goes to expired stock), amber = damaged. -->
+    <Style x:Key="SrLineRow" TargetType="DataGridRow">
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsExpired}" Value="True">
+                <Setter Property="Background" Value="{StaticResource DangerBgBrush}"/>
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsDamaged}" Value="True">
+                <Setter Property="Background" Value="{StaticResource WarningBgBrush}"/>
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsFullyReturned}" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource TextTertiaryBrush}"/>
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+</ResourceDictionary>

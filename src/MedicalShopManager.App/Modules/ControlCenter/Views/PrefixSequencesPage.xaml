@@ -1,0 +1,121 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.ControlCenter.Views.PrefixSequencesPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.ControlCenter.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:PrefixSequencesViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MedicalShopManager;component/Modules/ControlCenter/Views/ControlCenterStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <UserControl.InputBindings>
+        <KeyBinding Key="F2" Command="{Binding EditCommand}"/>
+        <KeyBinding Key="S" Modifiers="Control" Command="{Binding SaveEditCommand}"/>
+        <KeyBinding Key="Escape" Command="{Binding CancelEditCommand}"/>
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
+    </UserControl.InputBindings>
+
+    <Grid>
+        <DockPanel Margin="0,0,8,0">
+            <StackPanel DockPanel.Dock="Top">
+                <DockPanel Margin="0,0,0,4">
+                    <Button DockPanel.Dock="Right" Content="Edit selected (F2)" Command="{Binding EditCommand}" Style="{StaticResource PrimaryButton}" Height="34" Padding="14,0"/>
+                    <TextBlock Text="Prefix &amp; Sequences" Style="{StaticResource PageTitle}" Margin="0" VerticalAlignment="Center"/>
+                </DockPanel>
+                <TextBlock Style="{StaticResource CcHint}" Margin="0,0,0,12" TextWrapping="Wrap">
+                    <Run Text="{Binding FinancialYearLabel, Mode=OneWay}"/>
+                    <Run Text=". Numbers reset every April for sequences set to reset; the format must then include {FY} or {FY2}. GST allows at most 16 characters: letters, digits, '-' and '/'."/>
+                </TextBlock>
+                <Border Style="{StaticResource CcSuccessBanner}" Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}">
+                    <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                </Border>
+                <Border Style="{StaticResource CcErrorBanner}" Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" TextWrapping="Wrap"/>
+                </Border>
+            </StackPanel>
+
+            <Border Style="{StaticResource CardStyle}" Padding="12">
+                <Grid>
+                    <DataGrid x:Name="SequenceGrid" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" Style="{StaticResource ModernDataGrid}"
+                              IsReadOnly="True" SelectionMode="Single" AutoGenerateColumns="False">
+                        <DataGrid.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding EditCommand}" CommandParameter="{Binding SelectedItem, ElementName=SequenceGrid}"/>
+                            <MouseBinding Gesture="LeftDoubleClick" Command="{Binding EditCommand}" CommandParameter="{Binding SelectedItem, ElementName=SequenceGrid}"/>
+                        </DataGrid.InputBindings>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Document" Binding="{Binding DocumentName}" Width="1.4*" FontWeight="SemiBold"/>
+                            <DataGridTextColumn Header="Prefix" Binding="{Binding Prefix}" Width="0.7*"/>
+                            <DataGridTextColumn Header="Format" Binding="{Binding Template}" Width="1.4*"/>
+                            <DataGridTextColumn Header="Digits" Binding="{Binding Padding}" Width="0.5*"/>
+                            <DataGridTextColumn Header="Next number" Binding="{Binding NextNumberPreview}" Width="1.3*" Foreground="{StaticResource PrimaryBrush}"/>
+                            <DataGridTextColumn Header="Last issued" Binding="{Binding LastIssued}" Width="1.3*"/>
+                            <DataGridTextColumn Header="Resets" Binding="{Binding ResetLabel}" Width="0.8*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <TextBlock Text="No document numbering is configured. Restart the app so the database can be upgraded."
+                               Style="{StaticResource CcHint}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Visibility="{Binding HasRows, Converter={StaticResource InverseBoolToVisibility}}"/>
+                </Grid>
+            </Border>
+        </DockPanel>
+
+        <!-- Editor dialog -->
+        <Grid Style="{StaticResource CcModalOverlay}" Visibility="{Binding IsEditorOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource CardStyle}" Width="520" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="20"
+                    Background="{StaticResource CardBrush}" KeyboardNavigation.TabNavigation="Cycle">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,12">
+                        <Button DockPanel.Dock="Right" Content="&#xE711;" FontFamily="Segoe MDL2 Assets" Command="{Binding CancelEditCommand}"
+                                Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="Close (Esc)" IsTabStop="False"/>
+                        <TextBlock Text="{Binding EditTitle}" Style="{StaticResource SectionHeader}" Margin="0"/>
+                    </DockPanel>
+
+                    <UniformGrid Columns="2">
+                        <StackPanel Style="{StaticResource CcField}">
+                            <TextBlock Text="Prefix" Style="{StaticResource CcFieldLabel}"/>
+                            <TextBox Text="{Binding EditPrefix, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" MaxLength="10" CharacterCasing="Upper"/>
+                            <TextBlock Text="{Binding Errors[Prefix]}" Style="{StaticResource CcFieldError}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource CcField}">
+                            <TextBlock Text="Number format" Style="{StaticResource CcFieldLabel}"/>
+                            <ComboBox ItemsSource="{Binding TemplatePresets}" Text="{Binding EditTemplate, UpdateSourceTrigger=PropertyChanged}"
+                                      IsEditable="True" Style="{StaticResource CcCombo}"/>
+                            <TextBlock Text="{Binding Errors[Template]}" Style="{StaticResource CcFieldError}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource CcField}">
+                            <TextBlock Text="Digits in the number" Style="{StaticResource CcFieldLabel}"/>
+                            <ComboBox ItemsSource="{Binding PaddingChoices}" SelectedItem="{Binding EditPadding}" Style="{StaticResource CcCombo}"/>
+                            <TextBlock Text="{Binding Errors[Padding]}" Style="{StaticResource CcFieldError}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource CcField}">
+                            <TextBlock Text="Next number" Style="{StaticResource CcFieldLabel}"/>
+                            <TextBox Text="{Binding EditNextNumber, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" MaxLength="9"/>
+                            <TextBlock Text="{Binding Errors[NextNumber]}" Style="{StaticResource CcFieldError}"/>
+                        </StackPanel>
+                    </UniformGrid>
+
+                    <CheckBox Content="Start again from 1 every financial year (April)" IsChecked="{Binding EditResetEachFinancialYear}"
+                              Style="{StaticResource CcCheckBox}" Margin="0,0,0,8"/>
+                    <TextBlock Text="Tokens: {PREFIX}  {SEQ} number  {FY} 2026-27  {FY2} 2627  {YYYY} 2026" Style="{StaticResource CcHint}" Margin="0,0,0,8"/>
+                    <TextBlock Text="{Binding EditLastIssued}" Style="{StaticResource CcHint}" Margin="0,0,0,8"/>
+
+                    <Border Background="{StaticResource InfoBgBrush}" CornerRadius="4" Padding="10,8" Margin="0,0,0,16">
+                        <TextBlock Text="{Binding LivePreview}" FontFamily="{StaticResource MonoFont}" FontSize="13" TextWrapping="Wrap"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                    </Border>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cancel (Esc)" Command="{Binding CancelEditCommand}" Style="{StaticResource SecondaryButton}" Height="34" Padding="14,0" Margin="0,0,8,0"/>
+                        <Button Content="Save (Ctrl+S)" Command="{Binding SaveEditCommand}" Style="{StaticResource PrimaryButton}" Height="34" Padding="16,0" IsDefault="True"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

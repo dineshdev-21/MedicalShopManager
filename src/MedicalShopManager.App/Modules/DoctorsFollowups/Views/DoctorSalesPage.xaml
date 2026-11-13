@@ -1,0 +1,137 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.DoctorsFollowups.Views.DoctorSalesPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.DoctorsFollowups.ViewModels"
+             xmlns:local="clr-namespace:MedicalShopManager.App.Modules.DoctorsFollowups.Views"
+             mc:Ignorable="d"
+             local:DoctorsFollowupsFocus.KeyboardForm="True"
+             d:DataContext="{d:DesignInstance Type=vm:DoctorSalesViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="DoctorsFollowupsStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
+        <KeyBinding Key="P" Modifiers="Control" Command="{Binding PrintCommand}"/>
+        <KeyBinding Key="F2" Command="{Binding PreviewCommand}"/>
+    </UserControl.InputBindings>
+
+    <DockPanel Margin="0,0,8,0">
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="Doctors" Style="{StaticResource SecondaryButton}" Command="{Binding OpenDoctorsCommand}" Margin="0,0,8,0"/>
+                <Button Content="Preview (F2)" Style="{StaticResource SecondaryButton}" Command="{Binding PreviewCommand}" Margin="0,0,8,0"/>
+                <Button Content="Print (Ctrl+P)" Style="{StaticResource PrimaryButton}" Command="{Binding PrintCommand}"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Text="Doctor-wise Sales" Style="{StaticResource PageTitle}" Margin="0"/>
+                <TextBlock Text="Active bills that name a doctor. Commission is paid on the taxable sale value, or on profit (taxable minus cost) when set on the doctor."
+                           Style="{StaticResource DfKeyHint}"/>
+            </StackPanel>
+        </DockPanel>
+
+        <Border DockPanel.Dock="Top" Style="{StaticResource CardStyle}" Padding="12,8" Margin="0,0,0,10">
+            <WrapPanel>
+                <StackPanel Style="{StaticResource DfField}" Width="140">
+                    <TextBlock Text="FROM" Style="{StaticResource DfLabel}"/>
+                    <DatePicker SelectedDate="{Binding FromDate}" Height="30"/>
+                </StackPanel>
+                <StackPanel Style="{StaticResource DfField}" Width="140">
+                    <TextBlock Text="TO" Style="{StaticResource DfLabel}"/>
+                    <DatePicker SelectedDate="{Binding ToDate}" Height="30"/>
+                </StackPanel>
+                <Button Content="Show (F5)" Style="{StaticResource PrimaryButton}" Command="{Binding RefreshCommand}" Margin="0,12,8,8"/>
+                <Button Content="This month" Style="{StaticResource SecondaryButton}" Command="{Binding ThisMonthCommand}" Margin="0,12,8,8"/>
+                <Button Content="Last month" Style="{StaticResource SecondaryButton}" Command="{Binding LastMonthCommand}" Margin="0,12,8,8"/>
+                <Button Content="This FY" Style="{StaticResource SecondaryButton}" Command="{Binding ThisFinancialYearCommand}" Margin="0,12,16,8"/>
+                <CheckBox Content="Include doctors typed on bills (not in master)" IsChecked="{Binding IncludeUnlinked}" VerticalAlignment="Center" Margin="0,8,0,0"/>
+            </WrapPanel>
+        </Border>
+
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+            <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                       Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                       Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}"/>
+            <Border Style="{StaticResource CardStyle}" Padding="14,8" Margin="0,4,0,0">
+                <WrapPanel>
+                    <StackPanel Style="{StaticResource DfFooterItem}">
+                        <TextBlock Text="DOCTORS" Style="{StaticResource DfLabel}"/>
+                        <TextBlock Text="{Binding Totals.Doctors}" Style="{StaticResource DfValue}"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource DfFooterItem}">
+                        <TextBlock Text="BILLS" Style="{StaticResource DfLabel}"/>
+                        <TextBlock Text="{Binding Totals.Bills}" Style="{StaticResource DfValue}"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource DfFooterItem}">
+                        <TextBlock Text="SALES" Style="{StaticResource DfLabel}"/>
+                        <TextBlock Text="{Binding Totals.SalesPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource DfValue}"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource DfFooterItem}">
+                        <TextBlock Text="TAXABLE" Style="{StaticResource DfLabel}"/>
+                        <TextBlock Text="{Binding Totals.TaxablePaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource DfValue}"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource DfFooterItem}">
+                        <TextBlock Text="PROFIT" Style="{StaticResource DfLabel}"/>
+                        <TextBlock Text="{Binding Totals.ProfitPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource DfValue}"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource DfFooterItem}">
+                        <TextBlock Text="COMMISSION" Style="{StaticResource DfLabel}"/>
+                        <TextBlock Text="{Binding Totals.CommissionPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource DfValue}"
+                                   Foreground="{StaticResource PrimaryBrush}"/>
+                    </StackPanel>
+                </WrapPanel>
+            </Border>
+        </StackPanel>
+
+        <!-- Bills of the selected doctor -->
+        <Border DockPanel.Dock="Bottom" Style="{StaticResource CardStyle}" Padding="12,8" Margin="0,8,0,0" MaxHeight="240"
+                Visibility="{Binding HasSelection, Converter={StaticResource BoolToVisibility}}">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="{Binding BillsTitle}" Style="{StaticResource DfSectionTitle}"/>
+                <DataGrid ItemsSource="{Binding Bills}" Style="{StaticResource ModernDataGrid}" AutoGenerateColumns="False" IsReadOnly="True"
+                          HeadersVisibility="Column">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="BILL NO" Binding="{Binding InvoiceNumber}" Width="130"/>
+                        <DataGridTextColumn Header="DATE" Binding="{Binding InvoiceDate, StringFormat=dd-MM-yy}" Width="80"/>
+                        <DataGridTextColumn Header="PATIENT / CUSTOMER" Binding="{Binding PartyDisplay}" Width="2*"/>
+                        <DataGridTextColumn Header="ITEMS" Binding="{Binding ItemCount}" Width="60"/>
+                        <DataGridTextColumn Header="TAXABLE" Binding="{Binding TaxablePaisa, Converter={StaticResource PaisaToRupees}}" Width="100"/>
+                        <DataGridTextColumn Header="BILL TOTAL" Binding="{Binding GrandTotalPaisa, Converter={StaticResource PaisaToRupees}}" Width="100"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </Border>
+
+        <Border Style="{StaticResource CardStyle}" Padding="0">
+            <Grid>
+                <DataGrid ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" Style="{StaticResource ModernDataGrid}"
+                          AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="DOCTOR" Binding="{Binding DisplayName}" Width="1.6*" FontWeight="SemiBold"/>
+                        <DataGridTextColumn Header="REG. NO" Binding="{Binding RegistrationNo}" Width="100"/>
+                        <DataGridTextColumn Header="" Binding="{Binding LinkLabel}" Width="130"/>
+                        <DataGridTextColumn Header="BILLS" Binding="{Binding BillCount}" Width="60"/>
+                        <DataGridTextColumn Header="PATIENTS" Binding="{Binding PatientCount}" Width="70"/>
+                        <DataGridTextColumn Header="SALES" Binding="{Binding SalesPaisa, Converter={StaticResource PaisaToRupees}}" Width="105"/>
+                        <DataGridTextColumn Header="TAXABLE" Binding="{Binding TaxablePaisa, Converter={StaticResource PaisaToRupees}}" Width="105"/>
+                        <DataGridTextColumn Header="COST" Binding="{Binding CostPaisa, Converter={StaticResource PaisaToRupees}}" Width="95"/>
+                        <DataGridTextColumn Header="PROFIT" Binding="{Binding ProfitPaisa, Converter={StaticResource PaisaToRupees}}" Width="95"/>
+                        <DataGridTextColumn Header="COMMISSION RULE" Binding="{Binding CommissionLabel}" Width="120"/>
+                        <DataGridTextColumn Header="COMMISSION" Binding="{Binding CommissionPaisa, Converter={StaticResource PaisaToRupees}}" Width="100"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}">
+                    <TextBlock Text="No doctor-wise sales in this period" Style="{StaticResource DfEmptyTitle}"/>
+                    <TextBlock Text="Bills appear here once the doctor is chosen on the bill. Try a longer period."
+                               Style="{StaticResource DfEmptyHint}" MaxWidth="420" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </DockPanel>
+</UserControl>

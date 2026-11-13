@@ -1,0 +1,66 @@
+<Window x:Class="MedicalShopManager.App.Modules.Billing.Views.BillingCustomerDisplayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.Billing.ViewModels"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=vm:BillingViewModel}"
+        Title="Customer Display" Width="900" Height="640" Background="{StaticResource BackgroundBrush}"
+        ShowActivated="False" WindowStartupLocation="Manual">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock FontSize="26" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}">
+                <Run Text="Hi "/><Run Text="{Binding CustomerDisplayName, Mode=OneWay}"/><Run Text=","/>
+            </TextBlock>
+            <TextBlock Text="We're glad to be your preferred pharmacist!" FontSize="16" Foreground="{StaticResource TextSecondaryBrush}"/>
+        </StackPanel>
+
+        <!-- Idle -->
+        <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Visibility="{Binding HasLines, Converter={StaticResource InverseBoolToVisibility}}">
+            <TextBlock Text="Welcome!" FontSize="40" FontWeight="Bold" HorizontalAlignment="Center" Foreground="{StaticResource PrimaryBrush}"/>
+            <TextBlock Text="How may we help you today?" FontSize="20" HorizontalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
+        </StackPanel>
+
+        <!-- Current bill -->
+        <Border Grid.Row="1" Style="{StaticResource CardStyle}" Padding="0" Visibility="{Binding HasLines, Converter={StaticResource BoolToVisibility}}">
+            <DataGrid ItemsSource="{Binding Lines}" Style="{StaticResource ModernDataGrid}" AutoGenerateColumns="False" IsReadOnly="True"
+                      HeadersVisibility="Column" FontSize="16" IsHitTestVisible="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="ITEM" Binding="{Binding MedicineName}" Width="3*"/>
+                    <DataGridTextColumn Header="QTY" Binding="{Binding QuantityDisplay}" Width="*"/>
+                    <DataGridTextColumn Header="MRP ₹" Binding="{Binding Mrp, StringFormat=N2}" Width="*"/>
+                    <DataGridTextColumn Header="AMOUNT ₹" Binding="{Binding Amount, StringFormat=N2}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <Grid Grid.Row="2" Margin="0,16,0,0" Visibility="{Binding HasLines, Converter={StaticResource BoolToVisibility}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <TextBlock FontSize="18" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold">
+                    <Run Text="You save "/><Run Text="{Binding Totals.SavingsPaisa, Mode=OneWay, Converter={StaticResource PaisaToRupees}}"/>
+                </TextBlock>
+                <TextBlock Text="{Binding LastSavedMessage}" FontSize="16" TextWrapping="Wrap" Foreground="{StaticResource TextPrimaryBrush}"
+                           Visibility="{Binding IsBillSaved, Converter={StaticResource BoolToVisibility}}"/>
+            </StackPanel>
+            <Border Grid.Column="1" Background="{StaticResource PrimaryLightBrush}" CornerRadius="8" Padding="20,10">
+                <StackPanel>
+                    <TextBlock Text="TOTAL TO PAY" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Right"/>
+                    <TextBlock Text="{Binding Totals.NetPayablePaisa, Converter={StaticResource PaisaToRupees}}" FontSize="40" FontWeight="Bold"
+                               Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Right"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

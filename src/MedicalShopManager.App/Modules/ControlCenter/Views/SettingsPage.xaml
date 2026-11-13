@@ -1,0 +1,64 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.ControlCenter.Views.SettingsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.ControlCenter.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:SettingsViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MedicalShopManager;component/Modules/ControlCenter/Views/ControlCenterStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <UserControl.InputBindings>
+        <KeyBinding Key="S" Modifiers="Control" Command="{Binding SaveSettingsCommand}"/>
+    </UserControl.InputBindings>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0,0,8,0">
+            <TextBlock Text="General Settings" Style="{StaticResource PageTitle}"/>
+            <TextBlock Text="Shop details are on Business Profile and invoice numbering on Prefix &amp; Sequences."
+                       Style="{StaticResource CcHint}" Margin="0,0,0,12"/>
+            <Border Style="{StaticResource CcSuccessBanner}" Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}">
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+            </Border>
+            <Border Style="{StaticResource CcErrorBanner}" Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}">
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" TextWrapping="Wrap"/>
+            </Border>
+
+            <Border Style="{StaticResource CardStyle}" Padding="18" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Defaults and alerts" Style="{StaticResource SectionHeader}" Margin="0,0,0,12"/>
+                    <UniformGrid Columns="3">
+                        <StackPanel Style="{StaticResource CcField}">
+                            <TextBlock Text="Default GST rate for new items (%)" Style="{StaticResource CcFieldLabel}"/>
+                            <ComboBox ItemsSource="{Binding GstSlabs}" SelectedItem="{Binding DefaultGstRate}" Style="{StaticResource CcCombo}"/>
+                            <TextBlock Text="{Binding Errors[DefaultGstRatePercent]}" Style="{StaticResource CcFieldError}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource CcField}">
+                            <TextBlock Text="Near-expiry alert (days)" Style="{StaticResource CcFieldLabel}"/>
+                            <TextBox Text="{Binding NearExpiryDays, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" MaxLength="3"/>
+                            <TextBlock Text="{Binding Errors[NearExpiryDays]}" Style="{StaticResource CcFieldError}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource CcField}">
+                            <TextBlock Text="Keep backups for (days)" Style="{StaticResource CcFieldLabel}"/>
+                            <TextBox Text="{Binding BackupRetentionDays, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" MaxLength="4"/>
+                            <TextBlock Text="{Binding Errors[BackupRetentionDays]}" Style="{StaticResource CcFieldError}"/>
+                        </StackPanel>
+                    </UniformGrid>
+                    <CheckBox Content="Back up automatically every day" IsChecked="{Binding AutoBackupEnabled}" Style="{StaticResource CcCheckBox}"/>
+                </StackPanel>
+            </Border>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Discard changes" Command="{Binding DiscardChangesCommand}" Style="{StaticResource SecondaryButton}" Height="40" Padding="16,0" Margin="0,0,8,0"/>
+                <Button Content="Save settings (Ctrl+S)" Command="{Binding SaveSettingsCommand}" Style="{StaticResource PrimaryButton}"
+                        Height="40" Padding="24,0" FontSize="14" FontWeight="SemiBold"/>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

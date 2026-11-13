@@ -1,0 +1,147 @@
+<UserControl x:Class="MedicalShopManager.App.Views.BatchExpiryPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:BatchExpiryViewModel}">
+
+    <Grid>
+        <DockPanel>
+            <!-- Top KPI Cards -->
+            <UniformGrid DockPanel.Dock="Top" Rows="1" Columns="3" Margin="0,0,0,16">
+                <!-- Total Batches -->
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="Total Active Batches" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeCaption}"/>
+                        <TextBlock Text="{Binding TotalBatchesCount}" FontSize="{StaticResource FontSizeDisplay}" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Near Expiry Warning Card -->
+                <Border Style="{StaticResource CardStyle}" BorderBrush="{StaticResource WarningBrush}" BorderThickness="1.5" Margin="4,0">
+                    <StackPanel>
+                        <TextBlock Text="Near Expiry (&lt; 90 Days)" Foreground="{StaticResource WarningBrush}" FontWeight="SemiBold" FontSize="{StaticResource FontSizeCaption}"/>
+                        <TextBlock Text="{Binding NearExpiryCount}" FontSize="{StaticResource FontSizeDisplay}" FontWeight="Bold" Foreground="{StaticResource WarningBrush}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Expired Danger Card -->
+                <Border Style="{StaticResource CardStyle}" BorderBrush="{StaticResource DangerBrush}" BorderThickness="1.5" Margin="8,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Expired Batches (Action Required)" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" FontSize="{StaticResource FontSizeCaption}"/>
+                        <TextBlock Text="{Binding ExpiredCount}" FontSize="{StaticResource FontSizeDisplay}" FontWeight="Bold" Foreground="{StaticResource DangerBrush}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- Filter Bar -->
+            <Border DockPanel.Dock="Top" Style="{StaticResource CardStyle}" Padding="10,8" Margin="0,0,0,12">
+                <DockPanel>
+                    <TextBlock Text="Filter by status:" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                    <ComboBox ItemsSource="{Binding FilterOptions}" SelectedItem="{Binding SelectedFilter}" Width="160" Height="32"/>
+                    <Button Content="Apply Filter" Command="{Binding ApplyFilterCommand}" Style="{StaticResource SecondaryButton}" Height="32" Padding="12,0" Margin="8,0,0,0"/>
+                </DockPanel>
+            </Border>
+
+            <!-- Status Alert Banners -->
+            <Border DockPanel.Dock="Top" Background="{StaticResource SuccessBgColor}" CornerRadius="4" Padding="8,4" Margin="0,0,0,8"
+                    Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}">
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold"/>
+            </Border>
+            <Border DockPanel.Dock="Top" Background="{StaticResource DangerBgColor}" CornerRadius="4" Padding="8,4" Margin="0,0,0,8"
+                    Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}">
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}"/>
+            </Border>
+
+            <!-- Batches DataGrid -->
+            <Border Style="{StaticResource CardStyle}" Padding="12">
+                <DataGrid ItemsSource="{Binding Batches}"
+                          SelectedItem="{Binding SelectedBatch}"
+                          Style="{StaticResource ModernDataGrid}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Batch No" Binding="{Binding BatchNumber}" Width="*" FontWeight="SemiBold"/>
+                        <DataGridTextColumn Header="Expiry Date" Binding="{Binding ExpiryDate, StringFormat=dd-MMM-yyyy}" Width="110"/>
+                        <DataGridTextColumn Header="Days Left" Binding="{Binding DaysToExpiry}" Width="80"/>
+                        <DataGridTextColumn Header="Stock (Packs + Loose)" Binding="{Binding QuantityRemainingDisplay}" Width="120" FontWeight="SemiBold"/>
+                        <DataGridTextColumn Header="Units" Binding="{Binding QuantityRemaining}" Width="60"/>
+                        <DataGridTextColumn Header="Purc Rate/Pack" Binding="{Binding PurchaseRate, StringFormat=N2}" Width="95"/>
+                        <DataGridTextColumn Header="Sale Rate/Pack" Binding="{Binding SaleRate, StringFormat=N2}" Width="95"/>
+                        <DataGridTextColumn Header="MRP/Pack" Binding="{Binding Mrp, StringFormat=N2}" Width="80"/>
+
+                        <!-- Actions -->
+                        <DataGridTemplateColumn Header="Actions" Width="170">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <Button Content="Adjust" 
+                                                Command="{Binding DataContext.OpenAdjustModalCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource SecondaryButton}" 
+                                                Padding="8,2" 
+                                                FontSize="11" 
+                                                Margin="0,0,4,0"/>
+                                        <Button Content="Write Off" 
+                                                Command="{Binding DataContext.OpenWriteOffModalCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Foreground="{StaticResource DangerBrush}" 
+                                                FontSize="11" 
+                                                Cursor="Hand"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+        </DockPanel>
+
+        <!-- ═══════════════ STOCK ADJUSTMENT MODAL ═══════════════ -->
+        <Grid Background="#80000000" Visibility="{Binding IsAdjustModalOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource CardStyle}" Width="450" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="20" Background="White">
+                <StackPanel>
+                    <TextBlock Text="Adjust Batch Stock" Style="{StaticResource SectionHeader}" Margin="0,0,0,12"/>
+                    <TextBlock Text="Update current stock quantity with an audited reason:" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,10"/>
+
+                    <TextBlock Text="New Stock Quantity" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                    <TextBox Text="{Binding AdjustNewQuantity, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Margin="0,0,0,10"/>
+
+                    <TextBlock Text="Adjustment Reason *" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                    <TextBox Text="{Binding AdjustReason, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Margin="0,0,0,16"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cancel" Command="{Binding CloseAdjustModalCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0" Width="80"/>
+                        <Button Content="Save Adjustment" Command="{Binding SaveAdjustmentCommand}" Style="{StaticResource PrimaryButton}" Width="130"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ═══════════════ STOCK WRITE-OFF MODAL ═══════════════ -->
+        <Grid Background="#80000000" Visibility="{Binding IsWriteOffModalOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource CardStyle}" Width="450" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="20" Background="White">
+                <StackPanel>
+                    <TextBlock Text="Write Off Stock Units" Style="{StaticResource SectionHeader}" Margin="0,0,0,12"/>
+                    <TextBlock Text="Permanently remove damaged or expired units from inventory:" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,10"/>
+
+                    <TextBlock Text="Units to Write Off" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                    <TextBox Text="{Binding WriteOffQuantity, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Margin="0,0,0,10"/>
+
+                    <TextBlock Text="Write-Off Category" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                    <ComboBox ItemsSource="{Binding WriteOffTypes}" SelectedItem="{Binding WriteOffType}" Height="34" Margin="0,0,0,10"/>
+
+                    <TextBlock Text="Reason *" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                    <TextBox Text="{Binding WriteOffReason, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" Margin="0,0,0,16"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Cancel" Command="{Binding CloseWriteOffModalCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0" Width="80"/>
+                        <Button Content="Confirm Write Off" Command="{Binding SaveWriteOffCommand}" Style="{StaticResource DangerButton}" Width="140"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

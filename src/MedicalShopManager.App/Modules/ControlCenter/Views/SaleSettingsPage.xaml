@@ -1,0 +1,155 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.ControlCenter.Views.SaleSettingsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.ControlCenter.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:SaleSettingsViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MedicalShopManager;component/Modules/ControlCenter/Views/ControlCenterStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <UserControl.InputBindings>
+        <KeyBinding Key="S" Modifiers="Control" Command="{Binding SaveCommand}"/>
+    </UserControl.InputBindings>
+
+    <DockPanel>
+        <Border DockPanel.Dock="Bottom" Padding="0,10,8,0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Discard changes" Command="{Binding DiscardChangesCommand}" Style="{StaticResource SecondaryButton}" Height="36" Padding="16,0" Margin="0,0,8,0"/>
+                <Button Content="Save sale settings (Ctrl+S)" Command="{Binding SaveCommand}" Style="{StaticResource PrimaryButton}" Height="36" Padding="20,0" FontWeight="SemiBold"/>
+            </StackPanel>
+        </Border>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0,0,8,8">
+            <TextBlock Text="Sale Settings" Style="{StaticResource PageTitle}"/>
+            <TextBlock Text="Defaults and rules applied when a new bill is created. Changes apply to the next new bill."
+                       Style="{StaticResource CcHint}" Margin="0,0,0,12"/>
+            <Border Style="{StaticResource CcSuccessBanner}" Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}">
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+            </Border>
+            <Border Style="{StaticResource CcErrorBanner}" Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}">
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" TextWrapping="Wrap"/>
+            </Border>
+
+            <!-- Payment & due date -->
+            <Border Style="{StaticResource CardStyle}" Padding="18" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Payment and due date" Style="{StaticResource SectionHeader}" Margin="0,0,0,12"/>
+                    <UniformGrid Columns="3">
+                        <StackPanel Style="{StaticResource CcField}">
+                            <TextBlock Text="New bills open as" Style="{StaticResource CcFieldLabel}"/>
+                            <ComboBox ItemsSource="{Binding PaymentDefaults}" SelectedValuePath="Key" DisplayMemberPath="Value" SelectedValue="{Binding NewSaleIsCredit}" Style="{StaticResource CcCombo}"/>
+                            <TextBlock Text="{Binding Errors[NewSaleIsCredit]}" Style="{StaticResource CcFieldError}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource CcField}">
+                            <TextBlock Text="Default credit days (due date)" Style="{StaticResource CcFieldLabel}"/>
+                            <TextBox Text="{Binding DefaultDueDays, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" MaxLength="3"/>
+                            <TextBlock Text="0 = due on the bill date; a customer's own credit days win" Style="{StaticResource CcHint}"/>
+                            <TextBlock Text="{Binding Errors[DefaultDueDays]}" Style="{StaticResource CcFieldError}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource CcField}">
+                            <TextBlock Text="Default doctor on new bills" Style="{StaticResource CcFieldLabel}"/>
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Content="Clear" Command="{Binding ClearDefaultDoctorCommand}" Style="{StaticResource SecondaryButton}" Height="34" Padding="10,0" Margin="6,0,0,0"/>
+                                <TextBox Text="{Binding DefaultDoctorName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" MaxLength="100"/>
+                            </DockPanel>
+                            <TextBlock Text="{Binding Errors[DefaultDoctorName]}" Style="{StaticResource CcFieldError}"/>
+                        </StackPanel>
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+
+            <!-- Expiry & stock -->
+            <Border Style="{StaticResource CardStyle}" Padding="18" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Expiry and stock" Style="{StaticResource SectionHeader}" Margin="0,0,0,12"/>
+                    <UniformGrid Columns="3">
+                        <StackPanel Style="{StaticResource CcField}">
+                            <TextBlock Text="Expiry cut-off for sale (months)" Style="{StaticResource CcFieldLabel}"/>
+                            <TextBox Text="{Binding ExpiryCutoffMonths, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" MaxLength="2"/>
+                            <TextBlock Text="Batches expiring within this many months are not offered. 0 = block only expired batches." Style="{StaticResource CcHint}"/>
+                            <TextBlock Text="{Binding Errors[ExpiryCutoffMonths]}" Style="{StaticResource CcFieldError}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource CcField}">
+                            <TextBlock Text="Show near expiry" Style="{StaticResource CcFieldLabel}"/>
+                            <ComboBox ItemsSource="{Binding NearExpiryChoices}" SelectedValuePath="Key" DisplayMemberPath="Value" SelectedValue="{Binding NearExpiryMonths}" Style="{StaticResource CcCombo}"/>
+                            <TextBlock Text="{Binding Errors[NearExpiryMonths]}" Style="{StaticResource CcFieldError}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource CcField}">
+                            <TextBlock Text="Stock" Style="{StaticResource CcFieldLabel}"/>
+                            <CheckBox Content="Allow negative stock (bill more than on hand)" IsChecked="{Binding AllowNegativeStock}" Style="{StaticResource CcCheckBox}"/>
+                            <TextBlock Text="Off is recommended: negative stock breaks FEFO and stock audits." Style="{StaticResource CcHint}" Margin="22,0,0,6"/>
+                            <CheckBox Content="Barcode scan adds whole packs" IsChecked="{Binding BarcodeQtyInPacks}" Style="{StaticResource CcCheckBox}"/>
+                        </StackPanel>
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+
+            <!-- Pricing -->
+            <Border Style="{StaticResource CardStyle}" Padding="18" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Rounding, discounts and schemes" Style="{StaticResource SectionHeader}" Margin="0,0,0,12"/>
+                    <UniformGrid Columns="3">
+                        <StackPanel Style="{StaticResource CcField}">
+                            <TextBlock Text="Round off bill total" Style="{StaticResource CcFieldLabel}"/>
+                            <ComboBox ItemsSource="{Binding RoundOffModes}" SelectedValuePath="Key" DisplayMemberPath="Value" SelectedValue="{Binding RoundOffMode}" Style="{StaticResource CcCombo}"/>
+                            <TextBlock Text="{Binding Errors[RoundOffMode]}" Style="{StaticResource CcFieldError}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource CcField}">
+                            <TextBlock Text="Default line discount %" Style="{StaticResource CcFieldLabel}"/>
+                            <TextBox Text="{Binding DefaultDiscountPercent, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" MaxLength="6"/>
+                            <TextBlock Text="{Binding Errors[DefaultDiscountPercent]}" Style="{StaticResource CcFieldError}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource CcField}">
+                            <TextBlock Text="Minimum bill discount %" Style="{StaticResource CcFieldLabel}"/>
+                            <TextBox Text="{Binding MinDiscountPercent, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" MaxLength="6"/>
+                            <TextBlock Text="{Binding Errors[MinDiscountPercent]}" Style="{StaticResource CcFieldError}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource CcField}">
+                            <TextBlock Text="Maximum bill discount %" Style="{StaticResource CcFieldLabel}"/>
+                            <TextBox Text="{Binding MaxDiscountPercent, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" MaxLength="6"/>
+                            <TextBlock Text="Users with 'Ignore discount limits' are not capped" Style="{StaticResource CcHint}"/>
+                            <TextBlock Text="{Binding Errors[MaxDiscountPercent]}" Style="{StaticResource CcFieldError}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource CcField}">
+                            <TextBlock Text="Schemes" Style="{StaticResource CcFieldLabel}"/>
+                            <CheckBox Content="Calculate scheme on sale quantity" IsChecked="{Binding AddSchemeWrtSaleQty}" Style="{StaticResource CcCheckBox}"/>
+                        </StackPanel>
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+
+            <!-- Compliance -->
+            <Border Style="{StaticResource CardStyle}" Padding="18" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Prescriptions, doctors and follow-ups" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                    <TextBlock Text="Schedule H1, X and narcotic (NRx) items always need a doctor and a register entry by law."
+                               Style="{StaticResource CcHint}" Margin="0,0,0,8"/>
+                    <CheckBox Content="Also require a doctor for Schedule H items" IsChecked="{Binding RequireDoctorForScheduleH}" Style="{StaticResource CcCheckBox}"/>
+                    <CheckBox Content="Require a prescription reference for prescription-only items" IsChecked="{Binding RequirePrescriptionReference}" Style="{StaticResource CcCheckBox}"/>
+                    <CheckBox Content="Create refill reminders for chronic medicines (patient follow-ups)" IsChecked="{Binding PatientReminders}" Style="{StaticResource CcCheckBox}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Paper -->
+            <Border Style="{StaticResource CardStyle}" Padding="18" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Sale invoice paper" Style="{StaticResource SectionHeader}" Margin="0,0,0,12"/>
+                    <StackPanel Style="{StaticResource CcField}" Width="300" HorizontalAlignment="Left">
+                        <TextBlock Text="Default paper size" Style="{StaticResource CcFieldLabel}"/>
+                        <ComboBox ItemsSource="{Binding PaperSizes}" SelectedItem="{Binding InvoicePaperSize}" Style="{StaticResource CcCombo}"/>
+                        <TextBlock Text="Also on Print Layout, with a preview." Style="{StaticResource CcHint}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+    </DockPanel>
+</UserControl>

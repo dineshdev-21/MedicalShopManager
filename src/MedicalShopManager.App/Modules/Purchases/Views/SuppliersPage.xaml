@@ -1,0 +1,140 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.Purchases.Views.SuppliersPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.Purchases.ViewModels"
+             xmlns:local="clr-namespace:MedicalShopManager.App.Modules.Purchases.Views"
+             mc:Ignorable="d"
+             local:PurchasesFocus.KeyboardForm="True"
+             d:DataContext="{d:DesignInstance Type=vm:SuppliersViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="PurchasesStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="F2" Command="{Binding AddCommand}"/>
+        <KeyBinding Key="F4" Command="{Binding EditCommand}"/>
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
+        <KeyBinding Key="F7" Command="{Binding OpenPaymentDialogCommand}"/>
+        <KeyBinding Key="L" Modifiers="Control" Command="{Binding StatementCommand}"/>
+    </UserControl.InputBindings>
+
+    <Grid>
+        <DockPanel Margin="0,0,8,0">
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="Refresh (F5)" Style="{StaticResource SecondaryButton}" Command="{Binding RefreshCommand}" Margin="0,0,8,0"/>
+                    <Button Content="+ Add Distributor (F2)" Style="{StaticResource PrimaryButton}" Command="{Binding AddCommand}"/>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="Distributors" Style="{StaticResource PageTitle}" Margin="0"/>
+                    <TextBlock FontSize="12" Foreground="{StaticResource TextSecondaryBrush}">
+                        <Run Text="Total payable: "/><Run Text="{Binding TotalOutstandingPaisa, Mode=OneWay, Converter={StaticResource PaisaToRupees}}" FontWeight="SemiBold"/>
+                        <Run Text="  ·  Overdue: "/><Run Text="{Binding TotalOverduePaisa, Mode=OneWay, Converter={StaticResource PaisaToRupees}}" FontWeight="SemiBold" Foreground="{StaticResource DangerBrush}"/>
+                    </TextBlock>
+                </StackPanel>
+            </DockPanel>
+
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                <CheckBox DockPanel.Dock="Right" Content="Show inactive" IsChecked="{Binding IncludeInactive}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+                <TextBox Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource PurchaseInput}" Height="32"
+                         ToolTip="Search by name, contact, phone, GSTIN or drug licence"/>
+            </DockPanel>
+
+            <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <Button Content="Edit (F4)" Style="{StaticResource SecondaryButton}" Command="{Binding EditCommand}" Margin="0,0,8,0"/>
+                    <Button Content="Statement (Ctrl+L)" Style="{StaticResource SecondaryButton}" Command="{Binding StatementCommand}" Margin="0,0,8,0"/>
+                    <Button Content="Purchases" Style="{StaticResource SecondaryButton}" Command="{Binding ViewPurchasesCommand}" Margin="0,0,8,0"/>
+                    <Button Content="Pay on account (F7)" Style="{StaticResource SecondaryButton}" Command="{Binding OpenPaymentDialogCommand}" Margin="0,0,8,0"/>
+                    <Button Content="Return goods" Style="{StaticResource SecondaryButton}" Command="{Binding ReturnGoodsCommand}" Margin="0,0,8,0"/>
+                    <Button Content="{Binding ActivateLabel}" Style="{StaticResource SecondaryButton}" Command="{Binding ToggleActiveCommand}"/>
+                </StackPanel>
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                           Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                           Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}"/>
+            </StackPanel>
+
+            <Border Style="{StaticResource CardStyle}" Padding="0">
+                <Grid>
+                    <DataGrid ItemsSource="{Binding Suppliers}" SelectedItem="{Binding SelectedSupplier}" Style="{StaticResource ModernDataGrid}"
+                              AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" MouseDoubleClick="OnRowDoubleClick">
+                        <DataGrid.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding EditCommand}" CommandParameter="{Binding SelectedSupplier}"/>
+                        </DataGrid.InputBindings>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="2*" FontWeight="SemiBold"/>
+                            <DataGridTextColumn Header="GSTIN" Binding="{Binding Gstin}" Width="140"/>
+                            <DataGridTextColumn Header="DRUG LICENCE" Binding="{Binding DrugLicenseNumber}" Width="120"/>
+                            <DataGridTextColumn Header="PHONE" Binding="{Binding Phone}" Width="110"/>
+                            <DataGridTextColumn Header="STATE" Binding="{Binding EffectiveStateCode}" Width="55"/>
+                            <DataGridTextColumn Header="CREDIT DAYS" Binding="{Binding CreditDays}" Width="80"/>
+                            <DataGridTextColumn Header="LAST PURCHASE" Binding="{Binding LastPurchaseDate, StringFormat=dd-MM-yyyy}" Width="100"/>
+                            <DataGridTextColumn Header="BALANCE" Binding="{Binding OutstandingBalancePaisa, Converter={StaticResource PaisaToRupees}}" Width="110" FontWeight="SemiBold"/>
+                            <DataGridTextColumn Header="OVERDUE" Binding="{Binding OverduePaisa, Converter={StaticResource PaisaToRupees}}" Width="100" Foreground="{StaticResource DangerBrush}"/>
+                            <DataGridCheckBoxColumn Header="ACTIVE" Binding="{Binding IsActive, Mode=OneWay}" Width="60"/>
+                            <DataGridTextColumn Header="ADDRESS" Binding="{Binding Address}" Width="2*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="No distributors found" Style="{StaticResource PurchaseEmptyTitle}"/>
+                        <TextBlock Text="Press F2 to add one, or add a distributor while entering a purchase (F6)." Style="{StaticResource PurchaseEmptyHint}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DockPanel>
+
+        <!-- Add / edit -->
+        <Grid Style="{StaticResource PurchaseOverlay}" Visibility="{Binding IsEditorOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource PurchaseDialogCard}" Width="620" local:PurchasesFocus.FocusFirstOnShow="True">
+                <Border.InputBindings>
+                    <KeyBinding Key="Escape" Command="{Binding CloseEditorCommand}"/>
+                    <KeyBinding Key="S" Modifiers="Alt" Command="{Binding SaveCommand}"/>
+                </Border.InputBindings>
+                <StackPanel>
+                    <ContentControl Content="{Binding Editor}" ContentTemplateSelector="{StaticResource ViewLocator}" IsTabStop="False"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                        <Button Content="Cancel (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding CloseEditorCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Save (Alt+S)" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Payment on account -->
+        <Grid Style="{StaticResource PurchaseOverlay}" Visibility="{Binding IsPaymentDialogOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource PurchaseDialogCard}" Width="460" local:PurchasesFocus.FocusFirstOnShow="True">
+                <Border.InputBindings>
+                    <KeyBinding Key="Escape" Command="{Binding ClosePaymentDialogCommand}"/>
+                    <KeyBinding Key="S" Modifiers="Alt" Command="{Binding SavePaymentCommand}"/>
+                </Border.InputBindings>
+                <StackPanel>
+                    <TextBlock Text="Pay distributor on account" Style="{StaticResource SectionHeader}"/>
+                    <TextBlock Margin="0,4,0,10" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap">
+                        <Run Text="{Binding SelectedSupplier.Name, Mode=OneWay}" FontWeight="SemiBold"/><Run Text="  ·  balance "/><Run Text="{Binding SelectedSupplier.OutstandingBalancePaisa, Mode=OneWay, Converter={StaticResource PaisaToRupees}}" FontWeight="SemiBold"/>
+                        <LineBreak/><Run Text="The amount settles unpaid bills, oldest due date first."/>
+                    </TextBlock>
+                    <TextBlock Text="AMOUNT ₹" Style="{StaticResource PurchaseLabel}"/>
+                    <TextBox Text="{Binding PaymentAmount}" Style="{StaticResource PurchaseNumberInput}" Margin="0,0,0,8"/>
+                    <TextBlock Text="PAYMENT MODE" Style="{StaticResource PurchaseLabel}"/>
+                    <ComboBox ItemsSource="{Binding PaymentMethods}" SelectedItem="{Binding PaymentMethod}" DisplayMemberPath="Label" Height="30" Margin="0,0,0,8"/>
+                    <TextBlock Text="DATE" Style="{StaticResource PurchaseLabel}"/>
+                    <DatePicker SelectedDate="{Binding PaymentDate}" Height="30" Margin="0,0,0,8"/>
+                    <TextBlock Text="REFERENCE / UTR / CHEQUE NO" Style="{StaticResource PurchaseLabel}"/>
+                    <TextBox Text="{Binding PaymentReference}" Style="{StaticResource PurchaseInput}" MaxLength="60"/>
+                    <TextBlock Text="{Binding DialogError}" Foreground="{StaticResource DangerBrush}" TextWrapping="Wrap" Margin="0,6,0,0"
+                               Visibility="{Binding DialogError, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <Button Content="Cancel (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding ClosePaymentDialogCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Save payment (Alt+S)" Style="{StaticResource PrimaryButton}" Command="{Binding SavePaymentCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

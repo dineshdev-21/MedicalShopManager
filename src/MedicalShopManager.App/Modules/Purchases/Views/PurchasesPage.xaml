@@ -1,0 +1,181 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.Purchases.Views.PurchasesPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.Purchases.ViewModels"
+             xmlns:local="clr-namespace:MedicalShopManager.App.Modules.Purchases.Views"
+             mc:Ignorable="d"
+             local:PurchasesFocus.KeyboardForm="True"
+             d:DataContext="{d:DesignInstance Type=vm:PurchasesViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="PurchasesStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="F2" Command="{Binding NewCommand}"/>
+        <KeyBinding Key="F4" Command="{Binding EditCommand}"/>
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
+        <KeyBinding Key="F7" Command="{Binding OpenPaymentDialogCommand}"/>
+        <KeyBinding Key="P" Modifiers="Control" Command="{Binding PrintRegisterCommand}"/>
+        <KeyBinding Key="I" Modifiers="Control" Command="{Binding ImportCommand}"/>
+    </UserControl.InputBindings>
+
+    <Grid>
+        <DockPanel Margin="0,0,8,0">
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="Print register (Ctrl+P)" Style="{StaticResource SecondaryButton}" Command="{Binding PrintRegisterCommand}" Margin="0,0,8,0"/>
+                    <Button Content="Import CSV / Excel (Ctrl+I)" Style="{StaticResource SecondaryButton}" Command="{Binding ImportCommand}" Margin="0,0,8,0"/>
+                    <Button Content="+ Add Purchase (F2)" Style="{StaticResource PrimaryButton}" Command="{Binding NewCommand}"/>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="Purchases" Style="{StaticResource PageTitle}" Margin="0"/>
+                    <TextBlock FontSize="12" Foreground="{StaticResource TextSecondaryBrush}">
+                        <Run Text="{Binding Summary.Count, Mode=OneWay}"/><Run Text=" bills  ·  Total "/><Run Text="{Binding Summary.GrandTotalPaisa, Mode=OneWay, Converter={StaticResource PaisaToRupees}}" FontWeight="SemiBold"/>
+                        <Run Text="  ·  GST "/><Run Text="{Binding Summary.TaxPaisa, Mode=OneWay, Converter={StaticResource PaisaToRupees}}"/>
+                        <Run Text="  ·  Paid "/><Run Text="{Binding Summary.PaidPaisa, Mode=OneWay, Converter={StaticResource PaisaToRupees}}"/>
+                        <Run Text="  ·  Due "/><Run Text="{Binding Summary.BalancePaisa, Mode=OneWay, Converter={StaticResource PaisaToRupees}}" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold"/>
+                    </TextBlock>
+                </StackPanel>
+            </DockPanel>
+
+            <!-- Filters -->
+            <Border DockPanel.Dock="Top" Style="{StaticResource CardStyle}" Padding="12,8" Margin="0,0,0,10">
+                <WrapPanel>
+                    <StackPanel Style="{StaticResource PurchaseField}" Width="140">
+                        <TextBlock Text="FROM" Style="{StaticResource PurchaseLabel}"/>
+                        <DatePicker SelectedDate="{Binding FromDate}" Height="30"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource PurchaseField}" Width="140">
+                        <TextBlock Text="TO" Style="{StaticResource PurchaseLabel}"/>
+                        <DatePicker SelectedDate="{Binding ToDate}" Height="30"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource PurchaseField}" Width="240">
+                        <TextBlock Text="DISTRIBUTOR" Style="{StaticResource PurchaseLabel}"/>
+                        <ComboBox ItemsSource="{Binding SupplierOptions}" SelectedItem="{Binding SelectedSupplier}" DisplayMemberPath="Label" Height="30" IsTextSearchEnabled="True"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource PurchaseField}" Width="150">
+                        <TextBlock Text="STATUS" Style="{StaticResource PurchaseLabel}"/>
+                        <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus}" DisplayMemberPath="Label" Height="30"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource PurchaseField}" Width="240">
+                        <TextBlock Text="SEARCH (bill no, purchase no, product, batch)" Style="{StaticResource PurchaseLabel}"/>
+                        <TextBox Text="{Binding SearchText}" Style="{StaticResource PurchaseInput}">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding RefreshCommand}"/>
+                            </TextBox.InputBindings>
+                        </TextBox>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource PurchaseField}">
+                        <TextBlock Text=" " Style="{StaticResource PurchaseLabel}"/>
+                        <Button Content="Apply (F5)" Style="{StaticResource SecondaryButton}" Command="{Binding RefreshCommand}" Height="30" Padding="12,0"/>
+                    </StackPanel>
+                </WrapPanel>
+            </Border>
+
+            <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <Button Content="Open (Enter)" Style="{StaticResource SecondaryButton}" Command="{Binding OpenCommand}" Margin="0,0,8,0"/>
+                    <Button Content="Edit (F4)" Style="{StaticResource SecondaryButton}" Command="{Binding EditCommand}" Margin="0,0,8,0"/>
+                    <Button Content="Record payment (F7)" Style="{StaticResource SecondaryButton}" Command="{Binding OpenPaymentDialogCommand}" Margin="0,0,8,0"/>
+                    <Button Content="Return items" Style="{StaticResource SecondaryButton}" Command="{Binding ReturnItemsCommand}" Margin="0,0,8,0"/>
+                    <Button Content="Print bill" Style="{StaticResource SecondaryButton}" Command="{Binding PrintPurchaseCommand}" Margin="0,0,8,0"/>
+                    <Button Content="Delete (Del)" Style="{StaticResource DangerButton}" Command="{Binding AskDeleteCommand}"/>
+                </StackPanel>
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold"
+                           Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                           Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}"/>
+            </StackPanel>
+
+            <Border Style="{StaticResource CardStyle}" Padding="0">
+                <Grid>
+                    <DataGrid x:Name="PurchasesGrid" ItemsSource="{Binding Purchases}" SelectedItem="{Binding SelectedPurchase}" Style="{StaticResource ModernDataGrid}"
+                              RowStyle="{StaticResource PurchaseStatusRow}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single"
+                              MouseDoubleClick="OnRowDoubleClick">
+                        <DataGrid.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding OpenCommand}" CommandParameter="{Binding SelectedPurchase}"/>
+                            <KeyBinding Key="Delete" Command="{Binding AskDeleteCommand}" CommandParameter="{Binding SelectedPurchase}"/>
+                        </DataGrid.InputBindings>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="BILL DATE" Binding="{Binding InvoiceDate, StringFormat=dd-MM-yyyy}" Width="90"/>
+                            <DataGridTextColumn Header="PURCHASE NO" Binding="{Binding PurchaseNumber}" Width="120"/>
+                            <DataGridTextColumn Header="BILL NO" Binding="{Binding SupplierInvoiceNumber}" Width="110"/>
+                            <DataGridTextColumn Header="DISTRIBUTOR" Binding="{Binding SupplierName}" Width="2*"/>
+                            <DataGridTextColumn Header="ITEMS" Binding="{Binding ItemCount}" Width="55"/>
+                            <DataGridTextColumn Header="TAXABLE" Binding="{Binding TaxablePaisa, Converter={StaticResource PaisaToRupees}}" Width="100"/>
+                            <DataGridTextColumn Header="GST" Binding="{Binding TaxAmountPaisa, Converter={StaticResource PaisaToRupees}}" Width="90"/>
+                            <DataGridTextColumn Header="TOTAL" Binding="{Binding GrandTotalPaisa, Converter={StaticResource PaisaToRupees}}" Width="105" FontWeight="SemiBold"/>
+                            <DataGridTextColumn Header="PAID" Binding="{Binding AmountPaidPaisa, Converter={StaticResource PaisaToRupees}}" Width="95"/>
+                            <DataGridTextColumn Header="BALANCE" Binding="{Binding BalancePaisa, Converter={StaticResource PaisaToRupees}}" Width="95"/>
+                            <DataGridTextColumn Header="DUE DATE" Binding="{Binding DueDate, StringFormat=dd-MM-yyyy}" Width="90"/>
+                            <DataGridTextColumn Header="STATUS" Binding="{Binding StatusLabel}" Width="80"/>
+                            <DataGridTextColumn Header="SOURCE" Binding="{Binding ImportSource}" Width="60"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="No purchases in this period" Style="{StaticResource PurchaseEmptyTitle}"/>
+                        <TextBlock Text="Widen the dates or clear the filters, press F2 to add a purchase, or Ctrl+I to import a distributor's bill file."
+                                   Style="{StaticResource PurchaseEmptyHint}" MaxWidth="420"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DockPanel>
+
+        <!-- Record payment -->
+        <Grid Style="{StaticResource PurchaseOverlay}" Visibility="{Binding IsPaymentDialogOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource PurchaseDialogCard}" Width="440" local:PurchasesFocus.FocusFirstOnShow="True">
+                <Border.InputBindings>
+                    <KeyBinding Key="Escape" Command="{Binding ClosePaymentDialogCommand}"/>
+                    <KeyBinding Key="S" Modifiers="Alt" Command="{Binding SavePaymentCommand}"/>
+                </Border.InputBindings>
+                <StackPanel>
+                    <TextBlock Text="Record payment to distributor" Style="{StaticResource SectionHeader}"/>
+                    <TextBlock Margin="0,4,0,10" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap">
+                        <Run Text="{Binding SelectedPurchase.SupplierName, Mode=OneWay}" FontWeight="SemiBold"/><Run Text="  ·  bill "/><Run Text="{Binding SelectedPurchase.SupplierInvoiceNumber, Mode=OneWay}"/><Run Text="  ·  balance "/><Run Text="{Binding SelectedPurchase.BalancePaisa, Mode=OneWay, Converter={StaticResource PaisaToRupees}}" FontWeight="SemiBold"/>
+                    </TextBlock>
+                    <TextBlock Text="AMOUNT ₹" Style="{StaticResource PurchaseLabel}"/>
+                    <TextBox Text="{Binding PaymentAmount}" Style="{StaticResource PurchaseNumberInput}" Margin="0,0,0,8"/>
+                    <TextBlock Text="PAYMENT MODE" Style="{StaticResource PurchaseLabel}"/>
+                    <ComboBox ItemsSource="{Binding PaymentMethods}" SelectedItem="{Binding PaymentMethod}" DisplayMemberPath="Label" Height="30" Margin="0,0,0,8"/>
+                    <TextBlock Text="DATE" Style="{StaticResource PurchaseLabel}"/>
+                    <DatePicker SelectedDate="{Binding PaymentDate}" Height="30" Margin="0,0,0,8"/>
+                    <TextBlock Text="REFERENCE / UTR / CHEQUE NO" Style="{StaticResource PurchaseLabel}"/>
+                    <TextBox Text="{Binding PaymentReference}" Style="{StaticResource PurchaseInput}" MaxLength="60"/>
+                    <TextBlock Text="{Binding DialogError}" Foreground="{StaticResource DangerBrush}" TextWrapping="Wrap" Margin="0,6,0,0"
+                               Visibility="{Binding DialogError, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <Button Content="Cancel (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding ClosePaymentDialogCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Save payment (Alt+S)" Style="{StaticResource PrimaryButton}" Command="{Binding SavePaymentCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Delete -->
+        <Grid Style="{StaticResource PurchaseOverlay}" Visibility="{Binding IsDeleteDialogOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource PurchaseDialogCard}" Width="480" local:PurchasesFocus.FocusFirstOnShow="True">
+                <Border.InputBindings>
+                    <KeyBinding Key="Escape" Command="{Binding CancelDeleteCommand}"/>
+                </Border.InputBindings>
+                <StackPanel>
+                    <TextBlock Text="Are you sure you want to delete this purchase?" Style="{StaticResource SectionHeader}"/>
+                    <TextBlock TextWrapping="Wrap" Margin="0,6,0,10" Foreground="{StaticResource TextSecondaryBrush}"
+                               Text="A draft is removed. A saved purchase is cancelled and its stock taken back out; this is refused when that stock was already sold or returned, or payments were made."/>
+                    <TextBlock Text="REASON" Style="{StaticResource PurchaseLabel}"/>
+                    <TextBox Text="{Binding DeleteReason, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource PurchaseInput}" MaxLength="200"/>
+                    <TextBlock Text="{Binding DialogError}" Foreground="{StaticResource DangerBrush}" TextWrapping="Wrap" Margin="0,6,0,0"
+                               Visibility="{Binding DialogError, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+                        <Button Content="Keep it (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding CancelDeleteCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Delete" Style="{StaticResource DangerButton}" Command="{Binding DeleteCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

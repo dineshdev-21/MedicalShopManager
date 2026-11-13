@@ -1,0 +1,222 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.Reports.Views.ReportViewerPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.Reports.ViewModels"
+             xmlns:local="clr-namespace:MedicalShopManager.App.Modules.Reports.Views"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:ReportViewerViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ReportsStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="F5" Command="{Binding RunCommand}"/>
+        <KeyBinding Key="E" Modifiers="Control" Command="{Binding ExportExcelCommand}"/>
+        <KeyBinding Key="P" Modifiers="Control" Command="{Binding PrintCommand}"/>
+        <KeyBinding Key="F2" Command="{Binding PreviewCommand}"/>
+        <KeyBinding Key="D" Modifiers="Control" Command="{Binding ToggleFavouriteCommand}"/>
+        <KeyBinding Key="PageDown" Modifiers="Control" Command="{Binding NextSheetCommand}"/>
+        <KeyBinding Key="Escape" Command="{Binding BackCommand}"/>
+        <KeyBinding Key="F3" Command="{x:Static local:ReportsFocusCommands.FocusSearch}"/>
+    </UserControl.InputBindings>
+    <UserControl.CommandBindings>
+        <CommandBinding Command="{x:Static local:ReportsFocusCommands.FocusSearch}" Executed="OnFocusSearch"/>
+    </UserControl.CommandBindings>
+
+    <Grid>
+        <DockPanel Margin="0,0,8,0">
+            <!-- Header -->
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="Run (F5)" Style="{StaticResource PrimaryButton}" Command="{Binding RunCommand}" Margin="0,0,6,0" Padding="14,0" Height="32"/>
+                    <Button Content="Excel (Ctrl+E)" Style="{StaticResource SecondaryButton}" Command="{Binding ExportExcelCommand}" Margin="0,0,6,0" Padding="12,0" Height="32"
+                            IsEnabled="{Binding HasResult}"/>
+                    <Button Content="Print / PDF (Ctrl+P)" Style="{StaticResource SecondaryButton}" Command="{Binding PrintCommand}" Margin="0,0,6,0" Padding="12,0" Height="32"
+                            IsEnabled="{Binding HasResult}" ToolTip="Choose 'Microsoft Print to PDF' in the printer list to save a PDF"/>
+                    <Button Content="Preview (F2)" Style="{StaticResource SecondaryButton}" Command="{Binding PreviewCommand}" Padding="12,0" Height="32"
+                            IsEnabled="{Binding HasResult}"/>
+                </StackPanel>
+                <Button DockPanel.Dock="Left" Content="‹ Reports" Style="{StaticResource SecondaryButton}" Command="{Binding BackCommand}"
+                        Height="32" Padding="10,0" Margin="0,0,12,0" VerticalAlignment="Center" ToolTip="Back to the catalogue (Esc)" Focusable="False"/>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Title}" Style="{StaticResource PageTitle}" Margin="0"/>
+                        <Button Content="{Binding StarGlyph}" Style="{StaticResource RptStarButton}" Command="{Binding ToggleFavouriteCommand}"
+                                ToolTip="Favourite (Ctrl+D)" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource RptHint}">
+                        <Run Text="{Binding CategoryLabel, Mode=OneWay}"/><Run Text="  ·  "/><Run Text="{Binding Description, Mode=OneWay}"/>
+                    </TextBlock>
+                    <TextBlock Text="F5 run · Ctrl+E Excel · Ctrl+P print / PDF · F2 preview · F3 search rows · Ctrl+PgDn next sheet · Ctrl+D favourite · Esc back"
+                               Style="{StaticResource RptHint}"/>
+                </StackPanel>
+            </DockPanel>
+
+            <!-- Filters -->
+            <Border DockPanel.Dock="Top" Style="{StaticResource CardStyle}" Padding="12,8" Margin="0,0,0,10">
+                <StackPanel>
+                    <WrapPanel>
+                        <StackPanel Style="{StaticResource RptField}" Width="140" Visibility="{Binding ShowDateRange, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="FROM" Style="{StaticResource RptLabel}"/>
+                            <DatePicker x:Name="FromPicker" SelectedDate="{Binding FromDate}" Height="30" TabIndex="0"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource RptField}" Width="140" Visibility="{Binding ShowDateRange, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="TO" Style="{StaticResource RptLabel}"/>
+                            <DatePicker SelectedDate="{Binding ToDate}" Height="30" TabIndex="1"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource RptField}" Width="140" Visibility="{Binding ShowAsOf, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="AS ON" Style="{StaticResource RptLabel}"/>
+                            <DatePicker x:Name="AsOfPicker" SelectedDate="{Binding AsOfDate}" Height="30" TabIndex="2"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource RptField}" Width="170" Visibility="{Binding ShowNumber, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="{Binding NumberLabel}" Style="{StaticResource RptLabel}"/>
+                            <TextBox Text="{Binding NumberText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource RptInput}" TabIndex="3"
+                                     HorizontalContentAlignment="Right">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Enter" Command="{Binding RunCommand}"/>
+                                </TextBox.InputBindings>
+                            </TextBox>
+                        </StackPanel>
+                        <ItemsControl ItemsSource="{Binding Choices}" IsTabStop="False" Visibility="{Binding HasChoices, Converter={StaticResource BoolToVisibility}}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:ReportChoiceItem}">
+                                    <StackPanel Style="{StaticResource RptField}" Width="190">
+                                        <TextBlock Text="{Binding Label}" Style="{StaticResource RptLabel}"/>
+                                        <ComboBox ItemsSource="{Binding Options}" SelectedItem="{Binding Selected}" DisplayMemberPath="Label" Height="30"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </WrapPanel>
+                    <ItemsControl ItemsSource="{Binding Presets}" IsTabStop="False" Visibility="{Binding ShowDateRange, Converter={StaticResource BoolToVisibility}}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:ReportPresetItem}">
+                                <Button Content="{Binding Label}" Style="{StaticResource RptPresetButton}"
+                                        Command="{Binding DataContext.ApplyPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- Headline figures -->
+            <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding SummaryFigures}" IsTabStop="False" Margin="0,0,0,2">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:ReportFigure}">
+                        <Border Style="{StaticResource RptFigure}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Label}" Style="{StaticResource RptLabel}"/>
+                                <TextBlock Text="{Binding Value}" Style="{StaticResource RptValue}"/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Sheets + quick search -->
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <TextBlock Text="{Binding RowCountLabel}" Style="{StaticResource RptHint}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBox x:Name="QuickFilterBox" Text="{Binding QuickFilter, UpdateSourceTrigger=PropertyChanged, Delay=250}" Width="240"
+                             Style="{StaticResource RptInput}" TabIndex="5" ToolTip="Show only rows containing this text (F3)"/>
+                </StackPanel>
+                <TextBlock DockPanel.Dock="Left" Text="{Binding PeriodLabel}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0"
+                           Foreground="{StaticResource TextSecondaryBrush}"/>
+                <ListBox ItemsSource="{Binding Sheets}" SelectedItem="{Binding SelectedSheet}" DisplayMemberPath="Name" BorderThickness="0"
+                         Background="Transparent" ItemContainerStyle="{StaticResource RptSheetTab}" TabIndex="4"
+                         Visibility="{Binding HasSeveralSheets, Converter={StaticResource BoolToVisibility}}"
+                         ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                </ListBox>
+            </DockPanel>
+
+            <!-- Footer: totals, notes, status -->
+            <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                <Border Style="{StaticResource CardStyle}" Padding="12,6" Margin="0,0,0,6"
+                        Visibility="{Binding TotalFigures.Count, Converter={StaticResource CountToVisibility}}">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Left" Text="TOTAL" Style="{StaticResource RptLabel}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <ItemsControl ItemsSource="{Binding TotalFigures}" IsTabStop="False">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:ReportFigure}">
+                                    <StackPanel Margin="0,0,18,0">
+                                        <TextBlock Text="{Binding Label}" Style="{StaticResource RptLabel}"/>
+                                        <TextBlock Text="{Binding Value}" FontWeight="Bold" FontSize="13"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </DockPanel>
+                </Border>
+                <ItemsControl ItemsSource="{Binding Notes}" IsTabStop="False" Visibility="{Binding HasNotes, Converter={StaticResource BoolToVisibility}}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding StringFormat='• {0}'}" Style="{StaticResource RptHint}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <DockPanel Margin="0,4,0,0">
+                    <Button DockPanel.Dock="Right" Content="Open file" Style="{StaticResource SecondaryButton}" Height="26" Padding="10,0"
+                            Command="{Binding OpenExportCommand}" Focusable="False"
+                            Visibility="{Binding LastExportPath, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                    <StackPanel>
+                        <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                                   Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                        <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                                   Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}"/>
+                    </StackPanel>
+                </DockPanel>
+            </StackPanel>
+
+            <!-- Grid -->
+            <Grid>
+                <DataGrid x:Name="ReportGrid" ItemsSource="{Binding GridView}" Style="{StaticResource ModernDataGrid}" AutoGenerateColumns="True"
+                          AutoGeneratingColumn="OnAutoGeneratingColumn" RowStyle="{StaticResource RptGridRow}" RowHeight="30"
+                          CanUserSortColumns="True" CanUserReorderColumns="False" EnableRowVirtualization="True" EnableColumnVirtualization="True"
+                          HorizontalScrollBarVisibility="Auto" TabIndex="6" ClipboardCopyMode="IncludeHeader"
+                          Visibility="{Binding HasRows, Converter={StaticResource BoolToVisibility}}"/>
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                            Visibility="{Binding HasRows, Converter={StaticResource InverseBoolToVisibility}}">
+                    <TextBlock Text="▤" FontSize="32" HorizontalAlignment="Center" Foreground="{StaticResource TextTertiaryBrush}"/>
+                    <TextBlock Text="{Binding EmptyMessage}" Style="{StaticResource RptHint}" FontSize="13" TextAlignment="Center" MaxWidth="460"/>
+                </StackPanel>
+            </Grid>
+        </DockPanel>
+
+        <!-- Busy overlay -->
+        <Border Background="#40FFFFFF" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}">
+            <TextBlock Text="Preparing report…" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Foreground="{StaticResource PrimaryBrush}"/>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,329 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.Finance.Views.FinanceCashBankPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.Finance.ViewModels"
+             xmlns:local="clr-namespace:MedicalShopManager.App.Modules.Finance.Views"
+             mc:Ignorable="d"
+             local:FinanceFocus.KeyboardForm="True"
+             d:DataContext="{d:DesignInstance Type=vm:FinanceCashBankViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="FinanceStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
+        <KeyBinding Key="N" Modifiers="Alt" Command="{Binding NewAccountCommand}"/>
+        <KeyBinding Key="T" Modifiers="Control" Command="{Binding NewMovementCommand}"/>
+        <KeyBinding Key="F3" Command="{Binding OpenStatementCommand}"/>
+        <KeyBinding Key="S" Modifiers="Alt" Command="{Binding SaveAccountCommand}"/>
+        <KeyBinding Key="Escape" Command="{Binding CloseDialogsCommand}"/>
+    </UserControl.InputBindings>
+
+    <Grid>
+        <DockPanel Margin="0,0,8,0">
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="Refresh (F5)" Style="{StaticResource SecondaryButton}" Command="{Binding RefreshCommand}" Margin="0,0,6,0"/>
+                    <Button Content="Add money" Style="{StaticResource SecondaryButton}" Command="{Binding NewAddMoneyCommand}" Margin="0,0,6,0"/>
+                    <Button Content="Reduce money" Style="{StaticResource SecondaryButton}" Command="{Binding NewReduceMoneyCommand}" Margin="0,0,6,0"/>
+                    <Button Content="Transfer (Ctrl+T)" Style="{StaticResource SecondaryButton}" Command="{Binding NewMovementCommand}" Margin="0,0,6,0"/>
+                    <Button Content="New account (Alt+N)" Style="{StaticResource PrimaryButton}" Command="{Binding NewAccountCommand}"/>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="Cash &amp; Bank" Style="{StaticResource PageTitle}" Margin="0"/>
+                    <TextBlock Text="Cash in hand, bank accounts and UPI wallets. Balances are worked out from every sale, payment, expense and transfer."
+                               Style="{StaticResource FinKeyHint}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Alt+N new account  ·  Enter edit  ·  F3 statement  ·  Ctrl+T transfer  ·  F5 refresh" Style="{StaticResource FinKeyHint}"/>
+                </StackPanel>
+            </DockPanel>
+
+            <!-- Totals -->
+            <Border DockPanel.Dock="Top" Style="{StaticResource CardStyle}" Padding="14,8" Margin="0,0,0,10">
+                <DockPanel>
+                    <CheckBox DockPanel.Dock="Right" Content="Show inactive accounts" IsChecked="{Binding IncludeInactive}" VerticalAlignment="Center"/>
+                    <WrapPanel>
+                        <StackPanel Style="{StaticResource FinFooterItem}">
+                            <TextBlock Text="CASH IN HAND" Style="{StaticResource FinLabel}"/>
+                            <TextBlock Text="{Binding CashTotalPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource FinValue}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinFooterItem}">
+                            <TextBlock Text="BANK / UPI / CARD" Style="{StaticResource FinLabel}"/>
+                            <TextBlock Text="{Binding BankTotalPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource FinValue}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinFooterItem}">
+                            <TextBlock Text="TOTAL MONEY" Style="{StaticResource FinLabel}"/>
+                            <TextBlock Text="{Binding OverallTotalPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource FinValue}"
+                                       Foreground="{StaticResource PrimaryBrush}"/>
+                        </StackPanel>
+                    </WrapPanel>
+                </DockPanel>
+            </Border>
+
+            <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                           Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                           Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}"/>
+            </StackPanel>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*" MinWidth="300"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="10"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Accounts -->
+                <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CardStyle}" Padding="0">
+                    <Grid>
+                        <DataGrid ItemsSource="{Binding Accounts}" SelectedItem="{Binding SelectedAccount}" Style="{StaticResource ModernDataGrid}"
+                                  RowStyle="{StaticResource FinAccountRow}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
+                            <DataGrid.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding EditAccountCommand}"/>
+                                <MouseBinding Gesture="LeftDoubleClick" Command="{Binding OpenStatementCommand}"/>
+                            </DataGrid.InputBindings>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="ACCOUNT" Binding="{Binding DisplayName}" Width="2*" FontWeight="SemiBold"/>
+                                <DataGridTextColumn Header="TYPE" Binding="{Binding TypeLabel}" Width="100"/>
+                                <DataGridTextColumn Header="BANK / IFSC" Binding="{Binding Ifsc}" Width="105"/>
+                                <DataGridTextColumn Header="OPENING" Binding="{Binding OpeningBalancePaisa, Converter={StaticResource PaisaToRupees}}" Width="95"/>
+                                <DataGridTextColumn Header="BALANCE" Binding="{Binding BalancePaisa, Converter={StaticResource PaisaToRupees}}" Width="110" FontWeight="SemiBold"/>
+                                <DataGridTextColumn Header="LAST ENTRY" Binding="{Binding LastTransactionDate, StringFormat=dd-MM-yy}" Width="80"/>
+                                <DataGridTemplateColumn Header="ACTIONS" Width="215">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Content="Statement" Style="{StaticResource SecondaryButton}" Padding="8,2" Margin="0,0,4,0" Focusable="False"
+                                                        Command="{Binding DataContext.OpenStatementCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                                <Button Content="Edit" Style="{StaticResource SecondaryButton}" Padding="8,2" Margin="0,0,4,0" Focusable="False"
+                                                        Command="{Binding DataContext.EditAccountCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                                <Button Content="On / off" Style="{StaticResource SecondaryButton}" Padding="8,2" Focusable="False" ToolTip="Deactivate or reactivate"
+                                                        Command="{Binding DataContext.ToggleActiveCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="No accounts" Style="{StaticResource FinEmptyTitle}"/>
+                            <TextBlock Text="Press Alt+N to add your bank account or UPI wallet." Style="{StaticResource FinEmptyHint}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Method → account map -->
+                <Border Grid.Row="0" Grid.Column="2" Style="{StaticResource CardStyle}" Padding="12,10">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="Where bill payments go" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                        <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Style="{StaticResource FinKeyHint}" Margin="0,0,0,8"
+                                   Text="Sales, refunds and supplier payments recorded with these methods book into the chosen account. Credit moves no money."/>
+                        <ItemsControl ItemsSource="{Binding MethodAccounts}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <DockPanel Margin="0,0,0,6">
+                                        <TextBlock Text="{Binding Label}" Width="140" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                                        <ComboBox ItemsSource="{Binding DataContext.ActiveAccounts, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                  SelectedItem="{Binding Account}" DisplayMemberPath="DisplayName" Height="28"/>
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </DockPanel>
+                </Border>
+
+                <!-- Transfers / adjustments -->
+                <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Style="{StaticResource CardStyle}" Padding="12,8">
+                    <DockPanel>
+                        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                <StackPanel Style="{StaticResource FinField}" Width="135" Margin="0,0,8,0">
+                                    <TextBlock Text="FROM" Style="{StaticResource FinLabel}"/>
+                                    <DatePicker SelectedDate="{Binding MovementsFrom}" Height="28"/>
+                                </StackPanel>
+                                <StackPanel Style="{StaticResource FinField}" Width="135" Margin="0">
+                                    <TextBlock Text="TO" Style="{StaticResource FinLabel}"/>
+                                    <DatePicker SelectedDate="{Binding MovementsTo}" Height="28"/>
+                                </StackPanel>
+                            </StackPanel>
+                            <TextBlock Text="Transfers and adjustments" Style="{StaticResource SectionHeader}" VerticalAlignment="Center"/>
+                        </DockPanel>
+                        <Grid>
+                            <DataGrid ItemsSource="{Binding Movements}" SelectedItem="{Binding SelectedMovement}" Style="{StaticResource ModernDataGrid}"
+                                      RowStyle="{StaticResource FinMovementRow}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
+                                <DataGrid.InputBindings>
+                                    <KeyBinding Key="Delete" Command="{Binding BeginCancelMovementCommand}"/>
+                                </DataGrid.InputBindings>
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="DATE" Binding="{Binding MovementDate, StringFormat=dd-MM-yy}" Width="80"/>
+                                    <DataGridTextColumn Header="TYPE" Binding="{Binding KindLabel}" Width="100"/>
+                                    <DataGridTextColumn Header="FROM" Binding="{Binding FromAccountName}" Width="1.2*"/>
+                                    <DataGridTextColumn Header="TO" Binding="{Binding ToAccountName}" Width="1.2*"/>
+                                    <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountPaisa, Converter={StaticResource PaisaToRupees}}" Width="100" FontWeight="SemiBold"/>
+                                    <DataGridTextColumn Header="REFERENCE" Binding="{Binding Reference}" Width="110"/>
+                                    <DataGridTextColumn Header="NOTES" Binding="{Binding Notes}" Width="2*"/>
+                                    <DataGridTemplateColumn Header="" Width="80">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button Content="Cancel" Style="{StaticResource DangerButton}" Padding="8,2" Focusable="False"
+                                                        Visibility="{Binding IsCancelled, Converter={StaticResource InverseBoolToVisibility}}"
+                                                        Command="{Binding DataContext.BeginCancelMovementCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <TextBlock Text="No transfers or adjustments in this period. Ctrl+T moves money between accounts (e.g. cash deposited in the bank)."
+                                       Style="{StaticResource FinEmptyHint}" VerticalAlignment="Center" MaxWidth="460"
+                                       Visibility="{Binding HasNoMovements, Converter={StaticResource BoolToVisibility}}"/>
+                        </Grid>
+                    </DockPanel>
+                </Border>
+            </Grid>
+        </DockPanel>
+
+        <!-- Account editor -->
+        <Grid Style="{StaticResource FinOverlay}" Visibility="{Binding IsAccountEditorOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource FinDialogCard}" Width="560" local:FinanceFocus.FocusFirstOnShow="True">
+                <StackPanel>
+                    <TextBlock Text="{Binding AccountEditorTitle}" Style="{StaticResource SectionHeader}" Margin="0,0,0,10"/>
+                    <WrapPanel>
+                        <StackPanel Style="{StaticResource FinField}" Width="300">
+                            <TextBlock Text="ACCOUNT NAME *" Style="{StaticResource FinLabel}"/>
+                            <TextBox Text="{Binding EditName}" Style="{StaticResource FinInput}" MaxLength="80"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinField}" Width="200">
+                            <TextBlock Text="TYPE *" Style="{StaticResource FinLabel}"/>
+                            <ComboBox ItemsSource="{Binding AccountTypes}" SelectedItem="{Binding EditType}" DisplayMemberPath="Label" Height="30"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinField}" Width="250" Visibility="{Binding IsBankType, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="BANK NAME" Style="{StaticResource FinLabel}"/>
+                            <TextBox Text="{Binding EditBankName}" Style="{StaticResource FinInput}" MaxLength="80"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinField}" Width="250" Visibility="{Binding IsBankType, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="ACCOUNT HOLDER" Style="{StaticResource FinLabel}"/>
+                            <TextBox Text="{Binding EditHolder}" Style="{StaticResource FinInput}" MaxLength="80"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinField}" Width="250" Visibility="{Binding IsBankType, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="ACCOUNT NUMBER" Style="{StaticResource FinLabel}"/>
+                            <TextBox Text="{Binding EditAccountNumber}" Style="{StaticResource FinInput}" MaxLength="18"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinField}" Width="160" Visibility="{Binding IsBankType, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="IFSC" Style="{StaticResource FinLabel}"/>
+                            <TextBox Text="{Binding EditIfsc}" Style="{StaticResource FinInput}" MaxLength="11" CharacterCasing="Upper"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinField}" Width="300" Visibility="{Binding IsUpiType, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="UPI ID" Style="{StaticResource FinLabel}"/>
+                            <TextBox Text="{Binding EditUpiId}" Style="{StaticResource FinInput}" MaxLength="100"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinField}" Width="160">
+                            <TextBlock Text="OPENING BALANCE ₹" Style="{StaticResource FinLabel}"/>
+                            <TextBox Text="{Binding EditOpening, StringFormat=0.00}" Style="{StaticResource FinNumberInput}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinField}" Width="150">
+                            <TextBlock Text="AS ON" Style="{StaticResource FinLabel}"/>
+                            <DatePicker SelectedDate="{Binding EditOpeningDate}" Height="30"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinField}" Width="510">
+                            <TextBlock Text="NOTES" Style="{StaticResource FinLabel}"/>
+                            <TextBox Text="{Binding EditNotes}" Style="{StaticResource FinInput}" MaxLength="250">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Enter" Command="{Binding SaveAccountCommand}"/>
+                                </TextBox.InputBindings>
+                            </TextBox>
+                        </StackPanel>
+                    </WrapPanel>
+                    <TextBlock Text="A bank account may have a negative (overdrawn) opening balance. Cash in hand cannot."
+                               Style="{StaticResource FinKeyHint}" TextWrapping="Wrap"/>
+                    <ItemsControl ItemsSource="{Binding DialogErrors}" Style="{StaticResource FinErrorList}"
+                                  Visibility="{Binding HasDialogErrors, Converter={StaticResource BoolToVisibility}}"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <Button Content="Close (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding CloseDialogsCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Save account (Alt+S)" Style="{StaticResource PrimaryButton}" Command="{Binding SaveAccountCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Transfer / add / reduce money -->
+        <Grid Style="{StaticResource FinOverlay}" Visibility="{Binding IsMovementOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource FinDialogCard}" Width="540" local:FinanceFocus.FocusFirstOnShow="True">
+                <StackPanel>
+                    <TextBlock Text="Move money" Style="{StaticResource SectionHeader}" Margin="0,0,0,10"/>
+                    <WrapPanel>
+                        <StackPanel Style="{StaticResource FinField}" Width="170">
+                            <TextBlock Text="ENTRY" Style="{StaticResource FinLabel}"/>
+                            <ComboBox ItemsSource="{Binding MovementKinds}" SelectedItem="{Binding MoveKind}" DisplayMemberPath="Label" Height="30"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinField}" Width="140">
+                            <TextBlock Text="DATE *" Style="{StaticResource FinLabel}"/>
+                            <DatePicker SelectedDate="{Binding MoveDate}" Height="30"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinField}" Width="160">
+                            <TextBlock Text="AMOUNT ₹ *" Style="{StaticResource FinLabel}"/>
+                            <TextBox Text="{Binding MoveAmount, StringFormat=0.00}" Style="{StaticResource FinNumberInput}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinField}" Width="240" Visibility="{Binding ShowMoveFrom, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="FROM ACCOUNT *" Style="{StaticResource FinLabel}"/>
+                            <ComboBox ItemsSource="{Binding ActiveAccounts}" SelectedItem="{Binding MoveFrom}" DisplayMemberPath="DisplayName" Height="30"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinField}" Width="240" Visibility="{Binding ShowMoveTo, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="TO ACCOUNT *" Style="{StaticResource FinLabel}"/>
+                            <ComboBox ItemsSource="{Binding ActiveAccounts}" SelectedItem="{Binding MoveTo}" DisplayMemberPath="DisplayName" Height="30"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinField}" Width="240">
+                            <TextBlock Text="REFERENCE (SLIP / UTR)" Style="{StaticResource FinLabel}"/>
+                            <TextBox Text="{Binding MoveReference}" Style="{StaticResource FinInput}" MaxLength="60"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinField}" Width="490">
+                            <TextBlock Text="NOTES (required for add / reduce money)" Style="{StaticResource FinLabel}"/>
+                            <TextBox Text="{Binding MoveNotes}" Style="{StaticResource FinInput}" MaxLength="250">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Enter" Command="{Binding SaveMovementCommand}"/>
+                                </TextBox.InputBindings>
+                            </TextBox>
+                        </StackPanel>
+                    </WrapPanel>
+                    <ItemsControl ItemsSource="{Binding DialogErrors}" Style="{StaticResource FinErrorList}"
+                                  Visibility="{Binding HasDialogErrors, Converter={StaticResource BoolToVisibility}}"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <Button Content="Close (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding CloseDialogsCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Save (Alt+S)" Style="{StaticResource PrimaryButton}" Command="{Binding SaveMovementCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Cancel transfer -->
+        <Grid Style="{StaticResource FinOverlay}" Visibility="{Binding IsCancelMovementOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource FinDialogCard}" Width="460" local:FinanceFocus.FocusFirstOnShow="True">
+                <StackPanel>
+                    <TextBlock Text="Cancel entry" Style="{StaticResource SectionHeader}" Margin="0,0,0,6"/>
+                    <TextBlock Text="{Binding CancelMovementTarget}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                    <TextBlock Text="REASON *" Style="{StaticResource FinLabel}"/>
+                    <TextBox Text="{Binding CancelReason, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FinInput}" MaxLength="250">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding ConfirmCancelMovementCommand}"/>
+                        </TextBox.InputBindings>
+                    </TextBox>
+                    <ItemsControl ItemsSource="{Binding DialogErrors}" Style="{StaticResource FinErrorList}"
+                                  Visibility="{Binding HasDialogErrors, Converter={StaticResource BoolToVisibility}}"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <Button Content="Keep (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding CloseDialogsCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Cancel entry" Style="{StaticResource DangerButton}" Command="{Binding ConfirmCancelMovementCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

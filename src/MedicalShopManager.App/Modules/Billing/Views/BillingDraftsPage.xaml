@@ -1,0 +1,60 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.Billing.Views.BillingDraftsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.Billing.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:BillingDraftsViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="BillingStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="Escape" Command="{Binding CloseCommand}"/>
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
+    </UserControl.InputBindings>
+
+    <DockPanel>
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <Button Content="Refresh (F5)" Style="{StaticResource SecondaryButton}" Command="{Binding RefreshCommand}" Margin="0,0,8,0" IsTabStop="False"/>
+                <Button Content="Close (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding CloseCommand}" IsTabStop="False"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Text="Unsaved Drafts" Style="{StaticResource PageTitle}" Margin="0"/>
+                <TextBlock Text="Bills that were not saved are kept here for 7 days. Enter opens a draft, Del discards it."
+                           FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+            </StackPanel>
+        </DockPanel>
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+            <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}"
+                       Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}"
+                       Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}"/>
+        </StackPanel>
+        <Grid>
+            <DataGrid x:Name="DraftsGrid" ItemsSource="{Binding Drafts}" SelectedItem="{Binding SelectedDraft}" Style="{StaticResource ModernDataGrid}"
+                      AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single" MouseDoubleClick="OnDraftDoubleClick">
+                <DataGrid.InputBindings>
+                    <KeyBinding Key="Enter" Command="{Binding OpenCommand}" CommandParameter="{Binding SelectedDraft}"/>
+                    <KeyBinding Key="Delete" Command="{Binding DeleteCommand}" CommandParameter="{Binding SelectedDraft}"/>
+                </DataGrid.InputBindings>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="CUSTOMER" Binding="{Binding Title}" Width="2*"/>
+                    <DataGridTextColumn Header="ITEMS" Binding="{Binding ItemCount}" Width="70"/>
+                    <DataGridTextColumn Header="TOTAL ₹" Binding="{Binding Total, StringFormat=N2}" Width="100"/>
+                    <DataGridTextColumn Header="STARTED" Binding="{Binding CreatedAt, StringFormat=dd-MMM-yy HH:mm}" Width="130"/>
+                    <DataGridTextColumn Header="LAST CHANGE" Binding="{Binding UpdatedAt, StringFormat=dd-MMM-yy HH:mm}" Width="130"/>
+                </DataGrid.Columns>
+            </DataGrid>
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}">
+                <TextBlock Text="No unsaved drafts" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
+                <TextBlock Text="A bill you leave without saving appears here automatically." HorizontalAlignment="Center" Foreground="{StaticResource TextTertiaryBrush}"/>
+            </StackPanel>
+        </Grid>
+    </DockPanel>
+</UserControl>

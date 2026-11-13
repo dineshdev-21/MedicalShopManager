@@ -1,0 +1,7 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.Finance.Views.FinancePaySupplierPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:MedicalShopManager.App.Modules.Finance.Views">
+    <!-- Same form as the other payment page; FinancePaySupplierViewModel decides receipt or payment. -->
+    <local:FinancePartyPaymentPanel/>
+</UserControl>

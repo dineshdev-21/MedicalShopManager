@@ -1,0 +1,553 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.Billing.Views.BillingPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.Billing.ViewModels"
+             xmlns:views="clr-namespace:MedicalShopManager.App.Modules.Billing.Views"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:BillingViewModel}">
+
+    <UserControl.InputBindings>
+        <KeyBinding Key="S" Modifiers="Alt" Command="{Binding SaveCommand}"/>
+        <KeyBinding Key="F2" Command="{Binding ShowInvoiceCommand}"/>
+        <KeyBinding Key="F4" Command="{Binding EditCommand}"/>
+        <KeyBinding Key="Delete" Command="{Binding DeleteCommand}"/>
+        <KeyBinding Key="P" Modifiers="Control" Command="{Binding PrintCommand}"/>
+        <KeyBinding Key="B" Modifiers="Control" Command="{Binding FocusCommand}" CommandParameter="BillDiscount"/>
+        <KeyBinding Key="E" Modifiers="Control" Command="{Binding FocusCommand}" CommandParameter="CustomCharge"/>
+        <KeyBinding Key="F3" Command="{Binding FocusCommand}" CommandParameter="Product"/>
+        <KeyBinding Key="F8" Command="{Binding OpenDraftsCommand}"/>
+        <KeyBinding Key="N" Modifiers="Alt" Command="{Binding NewBillCommand}"/>
+        <KeyBinding Key="R" Modifiers="Alt" Command="{Binding ReplicateCommand}"/>
+        <KeyBinding Key="C" Modifiers="Alt" Command="{Binding SelectCustomerCommand}"/>
+        <KeyBinding Key="B" Modifiers="Alt" Command="{Binding ChangeBatchCommand}"/>
+        <KeyBinding Key="Escape" Command="{Binding EscapeCommand}"/>
+    </UserControl.InputBindings>
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="BillingStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="0,0,8,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ═══════════ A. Header bar ═══════════ -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,10">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="Customer Screen" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Click="OnOpenCustomerScreen" ToolTip="Open the customer-facing display on a second monitor"/>
+                <Button Content="Drafts (F8)" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Command="{Binding OpenDraftsCommand}"/>
+                <Button Content="Replicate (Alt+R)" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Command="{Binding ReplicateCommand}"
+                        Visibility="{Binding IsViewMode, Converter={StaticResource BoolToVisibility}}"/>
+                <Button Content="Show Invoice (F2)" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Command="{Binding ShowInvoiceCommand}"
+                        Visibility="{Binding IsViewMode, Converter={StaticResource BoolToVisibility}}"/>
+                <Button Content="Print (Ctrl+P)" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Command="{Binding PrintCommand}"
+                        Visibility="{Binding IsViewMode, Converter={StaticResource BoolToVisibility}}"/>
+                <Button Content="Edit (F4)" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Command="{Binding EditCommand}"
+                        Visibility="{Binding IsViewMode, Converter={StaticResource BoolToVisibility}}"/>
+                <Button Content="Delete (Del)" Style="{StaticResource DangerButton}" Margin="0,0,6,0" Command="{Binding DeleteCommand}"
+                        Visibility="{Binding IsViewMode, Converter={StaticResource BoolToVisibility}}"/>
+                <Button Content="New Bill (Alt+N)" Style="{StaticResource SecondaryButton}" Margin="0,0,6,0" Command="{Binding NewBillCommand}"/>
+                <Button Content="Save (Alt+S)" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}"
+                        Visibility="{Binding IsEditable, Converter={StaticResource BoolToVisibility}}"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Text="{Binding Title}" Style="{StaticResource PageTitle}" Margin="0"/>
+                <TextBlock Foreground="{StaticResource TextSecondaryBrush}" FontSize="12">
+                    <Run Text="{Binding DocumentKind, Mode=OneWay}"/><Run Text="  ·  Fill in the details below; F3 product search, Alt+C customer, Ctrl+B bill discount, Ctrl+E charge, Esc back"/>
+                </TextBlock>
+            </StackPanel>
+        </DockPanel>
+
+        <!-- ═══════════ B. Main details ═══════════ -->
+        <Border Grid.Row="1" Style="{StaticResource CardStyle}" Padding="12" Margin="0,0,0,10">
+            <StackPanel views:BillingFocus.KeyboardForm="True">
+                <WrapPanel>
+                    <StackPanel Style="{StaticResource BillingField}" Width="140">
+                        <TextBlock Text="DOCUMENT NO" Style="{StaticResource BillingLabel}"/>
+                        <TextBox Text="{Binding DocumentNumber, Mode=OneWay}" IsReadOnly="True" IsTabStop="False" Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource BillingField}" Width="140">
+                        <TextBlock Text="SALE DATE *" Style="{StaticResource BillingLabel}"/>
+                        <DatePicker SelectedDate="{Binding InvoiceDate}" IsEnabled="{Binding IsEditable}" TabIndex="1"
+                                    DisplayDateEnd="{x:Static sys:DateTime.Today}" SelectedDateFormat="Short"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource BillingField}" Width="260">
+                        <DockPanel>
+                            <CheckBox DockPanel.Dock="Right" Content="Cash/Counter Sale" FontSize="11" IsChecked="{Binding IsCounterSale}"
+                                      IsEnabled="{Binding IsEditable}" TabIndex="3"/>
+                            <TextBlock Text="CUSTOMER *" Style="{StaticResource BillingLabel}"/>
+                        </DockPanel>
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="✕" Style="{StaticResource BillingLinkButton}" Command="{Binding ClearCustomerCommand}"
+                                    IsTabStop="False" ToolTip="Back to Cash / Counter Sale" Visibility="{Binding Customer, Converter={StaticResource NullToVisibility}}"/>
+                            <TextBox x:Name="CustomerBox" Text="{Binding CustomerDisplayName, Mode=OneWay}" IsReadOnly="True" TabIndex="2"
+                                     Style="{StaticResource ModernTextBox}" Cursor="Hand" PreviewTextInput="OnCustomerTextInput"
+                                     PreviewMouseLeftButtonUp="OnCustomerBoxClicked"
+                                     ToolTip="Type, Space or Enter to select a customer (Alt+C); F2 to add a new one">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Enter" Command="{Binding SelectCustomerCommand}"/>
+                                    <KeyBinding Key="Space" Command="{Binding SelectCustomerCommand}"/>
+                                    <KeyBinding Key="F2" Command="{Binding QuickAddCustomerCommand}"/>
+                                </TextBox.InputBindings>
+                            </TextBox>
+                        </DockPanel>
+                        <TextBlock Text="{Binding CustomerChips}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0"
+                                   Visibility="{Binding CustomerChips, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource BillingField}" Width="170">
+                        <TextBlock Text="PATIENT NAME" Style="{StaticResource BillingLabel}"/>
+                        <TextBox x:Name="PatientBox" Text="{Binding PatientName, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="{Binding IsViewMode}"
+                                 Style="{StaticResource ModernTextBox}" TabIndex="4"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource BillingField}" Width="60">
+                        <TextBlock Text="AGE" Style="{StaticResource BillingLabel}"/>
+                        <TextBox Text="{Binding PatientAge, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="{Binding IsViewMode}" Style="{StaticResource ModernTextBox}" TabIndex="5"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource BillingField}" Width="110">
+                        <TextBlock Text="GENDER" Style="{StaticResource BillingLabel}"/>
+                        <ComboBox ItemsSource="{Binding Genders}" SelectedItem="{Binding PatientGender}" IsEnabled="{Binding IsEditable}" TabIndex="6"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource BillingField}" Width="180">
+                        <TextBlock Text="DOCTOR NAME" Style="{StaticResource BillingLabel}"/>
+                        <TextBox Text="{Binding DoctorName, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="{Binding IsViewMode}" Style="{StaticResource ModernTextBox}" TabIndex="7"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource BillingField}" Width="110">
+                        <TextBlock Text="DOCTOR REG. NO" Style="{StaticResource BillingLabel}"/>
+                        <TextBox Text="{Binding DoctorRegNo, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="{Binding IsViewMode}" Style="{StaticResource ModernTextBox}" TabIndex="8"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource BillingField}" Width="110">
+                        <TextBlock Text="RX NUMBER" Style="{StaticResource BillingLabel}"/>
+                        <TextBox Text="{Binding PrescriptionNumber, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="{Binding IsViewMode}" Style="{StaticResource ModernTextBox}" TabIndex="9"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource BillingField}" Width="200">
+                        <TextBlock Text="PATIENT ADDRESS" Style="{StaticResource BillingLabel}"/>
+                        <TextBox Text="{Binding PatientAddress, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="{Binding IsViewMode}" Style="{StaticResource ModernTextBox}" TabIndex="10"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource BillingField}" VerticalAlignment="Bottom"
+                                Visibility="{Binding ShopChargesGst, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="WITH GST?" Style="{StaticResource BillingLabel}"/>
+                        <CheckBox Content="Yes (Tax Invoice)" IsChecked="{Binding WithGst}" IsEnabled="{Binding IsEditable}" TabIndex="11"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" Margin="0,0,0,10">
+                        <Border Style="{StaticResource BillingPill}" Background="{StaticResource DangerBgBrush}">
+                            <TextBlock Text="EXPIRED" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource DangerBrush}"/>
+                        </Border>
+                        <Border Style="{StaticResource BillingPill}" Background="{StaticResource WarningBgBrush}">
+                            <TextBlock Text="EXPIRING" FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource WarningBrush}"/>
+                        </Border>
+                    </StackPanel>
+                </WrapPanel>
+
+                <!-- Prescription prompt (spec 02 §K/§L) -->
+                <Border Background="{StaticResource InfoBgBrush}" CornerRadius="4" Padding="8,4"
+                        Visibility="{Binding HasPrescriptionDrugs, Converter={StaticResource BoolToVisibility}}">
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <Button Content="Attach Prescription ›" Style="{StaticResource BillingLinkButton}" Click="OnAttachPrescription"
+                                    Visibility="{Binding IsEditable, Converter={StaticResource BoolToVisibility}}"/>
+                            <Button Content="View Prescription ›" Style="{StaticResource BillingLinkButton}" Click="OnViewPrescription"
+                                    Visibility="{Binding HasPrescriptionFile, Converter={StaticResource BoolToVisibility}}"/>
+                            <Button Content="Remove" Style="{StaticResource BillingLinkButton}" Command="{Binding RemovePrescriptionCommand}"
+                                    Visibility="{Binding HasPrescriptionFile, Converter={StaticResource BoolToVisibility}}"/>
+                        </StackPanel>
+                        <TextBlock Text="{Binding PrescriptionPrompt}" FontWeight="SemiBold" Foreground="{StaticResource InfoBrush}" VerticalAlignment="Center"/>
+                    </DockPanel>
+                </Border>
+            </StackPanel>
+        </Border>
+
+        <!-- ═══════════ E/F. Product entry + search dropdown ═══════════ -->
+        <Border Grid.Row="2" Style="{StaticResource CardStyle}" Padding="12,10" Margin="0,0,0,10"
+                Visibility="{Binding IsEditable, Converter={StaticResource BoolToVisibility}}">
+            <StackPanel>
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                        <CheckBox Content="Scan adds packs" IsChecked="{Binding ScanInPacks}" Margin="0,0,12,0" IsTabStop="False"
+                                  ToolTip="ADD SCAN QTY: checked = a barcode scan adds 1 pack, unchecked = 1 loose unit"/>
+                        <CheckBox Content="Batch order: Last in, first out" IsChecked="{Binding BatchOrderLifo}" IsTabStop="False"
+                                  ToolTip="Unchecked = first expiry, first out (FEFO, default)"/>
+                    </StackPanel>
+                    <TextBox x:Name="ProductBox" Text="{Binding ProductSearchText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}"
+                             FontSize="14" Height="34" VerticalContentAlignment="Center" TabIndex="20"
+                             ToolTip="Product name, composition or company (min 3 characters), or scan a barcode (F3)">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding SubmitProductCommand}"/>
+                            <KeyBinding Key="Down" Command="{Binding MoveProductSelectionCommand}" CommandParameter="Down"/>
+                            <KeyBinding Key="Up" Command="{Binding MoveProductSelectionCommand}" CommandParameter="Up"/>
+                        </TextBox.InputBindings>
+                    </TextBox>
+                </DockPanel>
+                <TextBlock Text="{Binding ProductSearchMessage}" FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="2,4,0,0"
+                           Visibility="{Binding ProductSearchMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                <Popup IsOpen="{Binding IsProductDropdownOpen}" PlacementTarget="{Binding ElementName=ProductBox}" Placement="Bottom"
+                       StaysOpen="False" AllowsTransparency="True" Width="{Binding ActualWidth, ElementName=ProductBox}">
+                    <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1" CornerRadius="4" MaxHeight="360">
+                        <ListBox ItemsSource="{Binding ProductResults}" SelectedItem="{Binding SelectedProduct}" BorderThickness="0"
+                                 Focusable="False" MouseDoubleClick="OnProductDoubleClick">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="2,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="130"/>
+                                            <ColumnDefinition Width="70"/>
+                                            <ColumnDefinition Width="80"/>
+                                            <ColumnDefinition Width="60"/>
+                                            <ColumnDefinition Width="90"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock FontWeight="SemiBold">
+                                                <Run Text="{Binding Name, Mode=OneWay}"/><Run Text="  "/><Run Text="{Binding ScheduleLabel, Mode=OneWay}" Foreground="{StaticResource DangerBrush}"/>
+                                            </TextBlock>
+                                            <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}">
+                                                <Run Text="{Binding Manufacturer, Mode=OneWay}"/><Run Text="  ·  "/><Run Text="{Binding Composition, Mode=OneWay}"/>
+                                            </TextBlock>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="{Binding StatusLabel}" FontSize="11" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="2" Text="{Binding RackLocation}" FontSize="11" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="3" Text="{Binding Mrp, StringFormat=₹{0:N2}}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="4" Text="{Binding SellableBatchCount, StringFormat={}{0} bt}" HorizontalAlignment="Right" FontSize="11" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="5" Text="{Binding StockDisplay}" HorizontalAlignment="Right" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Border>
+                </Popup>
+            </StackPanel>
+        </Border>
+
+        <!-- ═══════════ H. Bill lines ═══════════ -->
+        <Border Grid.Row="3" Style="{StaticResource CardStyle}" Padding="0" Margin="0,0,0,10">
+            <Grid>
+                <DataGrid x:Name="LinesGrid" ItemsSource="{Binding Lines}" SelectedItem="{Binding SelectedLine}"
+                          Style="{StaticResource ModernDataGrid}" RowStyle="{StaticResource BillingLineRow}"
+                          AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False"
+                          SelectionMode="Single" KeyboardNavigation.TabNavigation="Continue"
+                          views:BillingFocus.KeyboardForm="True" GotKeyboardFocus="OnGridGotFocus">
+                    <DataGrid.InputBindings>
+                        <KeyBinding Key="Delete" Command="{Binding RemoveLineCommand}"/>
+                    </DataGrid.InputBindings>
+                    <DataGrid.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="IsTabStop" Value="False"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                        </Style>
+                    </DataGrid.CellStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="#" Binding="{Binding RowNumber}" Width="32"/>
+                        <DataGridTemplateColumn Header="PRODUCT NAME" Width="2*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding MedicineName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding Manufacturer}" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="RX" Binding="{Binding ScheduleLabel}" Width="40"/>
+                        <DataGridTextColumn Header="LOC" Binding="{Binding RackLocation}" Width="50"/>
+                        <DataGridTemplateColumn Header="BATCH" Width="90">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding BatchNumber}" Style="{StaticResource BillingLinkButton}" IsTabStop="False"
+                                            ToolTip="Change batch (Alt+B)"
+                                            Command="{Binding DataContext.ChangeBatchCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="HSN" Binding="{Binding HsnCode}" Width="70"/>
+                        <DataGridTextColumn Header="PACK" Binding="{Binding PackDisplay}" Width="50"/>
+                        <DataGridTextColumn Header="EXPIRY" Binding="{Binding ExpiryLabel}" Width="55"/>
+                        <DataGridTextColumn Header="MRP ₹" Binding="{Binding Mrp, StringFormat=N2}" Width="70"/>
+                        <DataGridTemplateColumn Header="PACKS" Width="58">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox Tag="Packs" Text="{Binding Packs, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="{Binding IsReadOnly}"
+                                             Style="{StaticResource BillingCellBox}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="LOOSE" Width="55">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox Text="{Binding Loose, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding AllowLoose}"
+                                             IsReadOnly="{Binding IsReadOnly}" Style="{StaticResource BillingCellBox}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="FREE" Width="50">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox Text="{Binding FreeUnits, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="{Binding IsReadOnly}"
+                                             Style="{StaticResource BillingCellBox}" ToolTip="Free units (no charge, leave stock)"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="RATE ₹" Width="72">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox Text="{Binding Rate, StringFormat=N2, UpdateSourceTrigger=LostFocus}" IsReadOnly="{Binding IsReadOnly}"
+                                             Style="{StaticResource BillingCellBox}" ToolTip="Discounted rate per pack; typing a rate sets DISC % from MRP"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="DISC %" Width="58">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox Text="{Binding DiscountPercent, StringFormat=0.##, UpdateSourceTrigger=LostFocus}" IsReadOnly="{Binding IsReadOnly}"
+                                             Style="{StaticResource BillingCellBox}">
+                                        <TextBox.InputBindings>
+                                            <KeyBinding Key="Enter" Command="{Binding DataContext.FocusCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                        CommandParameter="Product"/>
+                                        </TextBox.InputBindings>
+                                    </TextBox>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="GST %" Binding="{Binding GstPercent, StringFormat=0.##}" Width="48"/>
+                        <DataGridTextColumn Header="MARGIN %" Binding="{Binding MarginPercent, StringFormat=0.#}" Width="62"/>
+                        <DataGridTextColumn Header="AMOUNT ₹" Binding="{Binding Amount, StringFormat=N2}" Width="85" FontWeight="SemiBold"/>
+                        <DataGridTemplateColumn Width="34">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="✕" Style="{StaticResource BillingLinkButton}" Foreground="{StaticResource DangerBrush}" IsTabStop="False"
+                                            ToolTip="Remove line (Del)"
+                                            Visibility="{Binding DataContext.IsEditable, RelativeSource={RelativeSource AncestorType=DataGrid}, Converter={StaticResource BoolToVisibility}}"
+                                            Command="{Binding DataContext.RemoveLineCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- Empty state -->
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20"
+                            Visibility="{Binding HasLines, Converter={StaticResource InverseBoolToVisibility}}">
+                    <TextBlock Text="No products on this bill yet" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
+                    <TextBlock Text="Type at least 3 characters of a product, composition or company in the search box (F3), or scan a barcode."
+                               FontSize="12" HorizontalAlignment="Center" Foreground="{StaticResource TextTertiaryBrush}" Margin="0,4,0,0"/>
+                    <TextBlock Text="F8 reopens an unsaved draft." FontSize="12" HorizontalAlignment="Center" Foreground="{StaticResource TextTertiaryBrush}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ═══════════ Validation errors ═══════════ -->
+        <Border Grid.Row="4" Background="{StaticResource DangerBgBrush}" CornerRadius="4" Padding="10,6" Margin="0,0,0,8"
+                Visibility="{Binding HasValidationErrors, Converter={StaticResource BoolToVisibility}}">
+            <ItemsControl ItemsSource="{Binding ValidationErrors}" Style="{StaticResource BillingErrorList}" Margin="0"/>
+        </Border>
+
+        <!-- ═══════════ I. Adjustments + totals ═══════════ -->
+        <StackPanel Grid.Row="5" Visibility="{Binding HasLines, Converter={StaticResource BoolToVisibility}}">
+            <Grid Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Bill discount (Ctrl+B) -->
+                <Border Grid.Column="0" Style="{StaticResource CardStyle}" Padding="10" Margin="0,0,8,0" IsEnabled="{Binding IsEditable}">
+                    <StackPanel>
+                        <TextBlock Text="BILL DISCOUNT (CTRL + B)" Style="{StaticResource BillingLabel}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="BillDiscountBox" Grid.Column="0" Text="{Binding BillDiscountPercent, UpdateSourceTrigger=LostFocus, TargetNullValue=''}"
+                                     Style="{StaticResource ModernTextBox}" ToolTip="In percent: added to every line's DISC %">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Enter" Command="{Binding ApplyBillDiscountCommand}" CommandParameter="Percent"/>
+                                </TextBox.InputBindings>
+                            </TextBox>
+                            <TextBlock Grid.Column="1" Text=" % or ₹ " VerticalAlignment="Center" Foreground="{StaticResource TextTertiaryBrush}"/>
+                            <TextBox Grid.Column="2" Text="{Binding BillDiscountAmount, UpdateSourceTrigger=LostFocus, TargetNullValue=''}"
+                                     Style="{StaticResource ModernTextBox}" ToolTip="In value: spread over the lines in proportion">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Enter" Command="{Binding ApplyBillDiscountCommand}" CommandParameter="Amount"/>
+                                </TextBox.InputBindings>
+                            </TextBox>
+                        </Grid>
+                        <DockPanel Margin="0,4,0,0">
+                            <Button DockPanel.Dock="Right" Content="Clear" Style="{StaticResource BillingLinkButton}" Command="{Binding ClearBillDiscountCommand}"/>
+                            <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center">
+                                <Run Text="Bill discount in value: "/><Run Text="{Binding AppliedBillDiscountPaisa, Mode=OneWay, Converter={StaticResource PaisaToRupees}}"/>
+                            </TextBlock>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Custom charge (Ctrl+E) -->
+                <Border Grid.Column="1" Style="{StaticResource CardStyle}" Padding="10" Margin="0,0,8,0" IsEnabled="{Binding IsEditable}">
+                    <StackPanel>
+                        <TextBlock Text="CUSTOM CHARGE (CTRL + E)" Style="{StaticResource BillingLabel}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <ComboBox x:Name="CustomChargeBox" IsEditable="True" ItemsSource="{Binding CustomChargeOptions}" DisplayMemberPath="Name"
+                                      Text="{Binding CustomChargeName, UpdateSourceTrigger=LostFocus}" Margin="0,0,6,0" ToolTip="Ex. Delivery Fee, Doctor Fee"/>
+                            <TextBox Grid.Column="1" Text="{Binding CustomChargeAmount, UpdateSourceTrigger=LostFocus, StringFormat=0.##}" Style="{StaticResource ModernTextBox}"/>
+                        </Grid>
+                        <TextBlock Text="Non-taxable add-on, e.g. delivery fee" FontSize="11" Foreground="{StaticResource TextTertiaryBrush}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Notes -->
+                <Border Grid.Column="2" Style="{StaticResource CardStyle}" Padding="10" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="REMARKS" Style="{StaticResource BillingLabel}"/>
+                        <TextBox Text="{Binding Notes, UpdateSourceTrigger=LostFocus}" IsReadOnly="{Binding IsViewMode}" Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Payment card -->
+                <Border Grid.Column="3" Style="{StaticResource CardStyle}" Padding="10">
+                    <StackPanel>
+                        <StackPanel Visibility="{Binding IsEditable, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="SAVE SALE (ALT + S)" Style="{StaticResource BillingLabel}"/>
+                            <TextBlock Text="Click on Save to Add Payment" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                            <Button Content="Save (Alt+S)" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}" Margin="0,6,0,0"/>
+                        </StackPanel>
+                        <StackPanel Visibility="{Binding IsViewMode, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="AMOUNT PAID" Style="{StaticResource BillingLabel}"/>
+                            <TextBlock Text="{Binding AmountReceivedPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource BillingValue}"/>
+                            <TextBlock FontSize="12" Foreground="{StaticResource DangerBrush}">
+                                <Run Text="Due: "/><Run Text="{Binding AmountDuePaisa, Mode=OneWay, Converter={StaticResource PaisaToRupees}}"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Summary strip -->
+            <Border Style="{StaticResource CardStyle}" Padding="12,8" Margin="0,0,0,8">
+                <UniformGrid Rows="1">
+                    <StackPanel>
+                        <TextBlock Text="ITEMS / UNITS" Style="{StaticResource BillingTotalLabel}"/>
+                        <TextBlock Style="{StaticResource BillingTotalValue}"><Run Text="{Binding ItemCount, Mode=OneWay}"/><Run Text=" / "/><Run Text="{Binding TotalUnits, Mode=OneWay}"/></TextBlock>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="MRP TOTAL" Style="{StaticResource BillingTotalLabel}"/>
+                        <TextBlock Text="{Binding Totals.MrpValuePaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource BillingTotalValue}"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="SUBTOTAL" Style="{StaticResource BillingTotalLabel}"/>
+                        <TextBlock Text="{Binding Totals.GrossPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource BillingTotalValue}"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="(-) DISCOUNT" Style="{StaticResource BillingTotalLabel}"/>
+                        <TextBlock Text="{Binding Totals.DiscountPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource BillingTotalValue}"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="TAXABLE" Style="{StaticResource BillingTotalLabel}"/>
+                        <TextBlock Text="{Binding Totals.TaxablePaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource BillingTotalValue}"/>
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding IsInterState, Converter={StaticResource InverseBoolToVisibility}}">
+                        <TextBlock Text="CGST + SGST" Style="{StaticResource BillingTotalLabel}"/>
+                        <TextBlock Text="{Binding Totals.TaxPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource BillingTotalValue}"/>
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding IsInterState, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="IGST" Style="{StaticResource BillingTotalLabel}"/>
+                        <TextBlock Text="{Binding Totals.IgstPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource BillingTotalValue}"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="(+) CHARGE" Style="{StaticResource BillingTotalLabel}"/>
+                        <TextBlock Text="{Binding Totals.OtherChargesPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource BillingTotalValue}"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="ROUND OFF" Style="{StaticResource BillingTotalLabel}"/>
+                        <TextBlock Text="{Binding Totals.RoundOffPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource BillingTotalValue}"/>
+                    </StackPanel>
+                    <Border Background="{StaticResource PrimaryLightBrush}" CornerRadius="4" Padding="6,2">
+                        <StackPanel>
+                            <TextBlock Text="TOTAL AMT" Style="{StaticResource BillingTotalLabel}"/>
+                            <TextBlock Text="{Binding Totals.NetPayablePaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource BillingTotalValue}"
+                                       FontSize="20" Foreground="{StaticResource PrimaryBrush}"/>
+                        </StackPanel>
+                    </Border>
+                    <StackPanel>
+                        <TextBlock Text="CUSTOMER SAVINGS" Style="{StaticResource BillingTotalLabel}"/>
+                        <TextBlock Text="{Binding Totals.SavingsPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource BillingTotalValue}" Foreground="{StaticResource SuccessBrush}"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="PROFIT" Style="{StaticResource BillingTotalLabel}"/>
+                        <Button Content="View" Style="{StaticResource BillingLinkButton}" HorizontalAlignment="Right" Command="{Binding ToggleProfitCommand}" IsTabStop="False"
+                                Visibility="{Binding ShowProfit, Converter={StaticResource InverseBoolToVisibility}}"/>
+                        <TextBlock Text="{Binding Totals.ProfitPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource BillingTotalValue}"
+                                   Visibility="{Binding ShowProfit, Converter={StaticResource BoolToVisibility}}" MouseLeftButtonUp="OnProfitClicked"/>
+                    </StackPanel>
+                </UniformGrid>
+            </Border>
+        </StackPanel>
+
+        <!-- ═══════════ Status ═══════════ -->
+        <StackPanel Grid.Row="6">
+            <Border Background="{StaticResource SuccessBgBrush}" CornerRadius="4" Padding="10,6"
+                    Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}">
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+            </Border>
+            <Border Background="{StaticResource DangerBgBrush}" CornerRadius="4" Padding="10,6"
+                    Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}">
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+            </Border>
+        </StackPanel>
+
+        <!-- ═══════════ Dialog overlay ═══════════ -->
+        <Grid Grid.Row="0" Grid.RowSpan="7" Background="#80000000" Visibility="{Binding IsAnyDialogOpen, Converter={StaticResource BoolToVisibility}}">
+            <ContentControl Content="{Binding BatchPicker}" ContentTemplateSelector="{StaticResource ViewLocator}" IsTabStop="False"
+                            Visibility="{Binding IsBatchPickerOpen, Converter={StaticResource BoolToVisibility}}"/>
+            <ContentControl Content="{Binding CustomerPicker}" ContentTemplateSelector="{StaticResource ViewLocator}" IsTabStop="False"
+                            Visibility="{Binding IsCustomerPickerOpen, Converter={StaticResource BoolToVisibility}}"/>
+            <ContentControl Content="{Binding Payment}" ContentTemplateSelector="{StaticResource ViewLocator}" IsTabStop="False"
+                            Visibility="{Binding IsPaymentOpen, Converter={StaticResource BoolToVisibility}}"/>
+            <Border Style="{StaticResource BillingDialogCard}" Width="760" MaxHeight="560"
+                    Visibility="{Binding IsDraftsOpen, Converter={StaticResource BoolToVisibility}}">
+                <ContentControl Content="{Binding DraftsList}" ContentTemplateSelector="{StaticResource ViewLocator}" IsTabStop="False"/>
+            </Border>
+
+            <!-- Delete confirmation -->
+            <Border Style="{StaticResource BillingDialogCard}" Width="440" views:BillingFocus.FocusFirstOnShow="True"
+                    Visibility="{Binding IsDeleteConfirmOpen, Converter={StaticResource BoolToVisibility}}">
+                <StackPanel>
+                    <TextBlock Text="Are you sure you want to delete this Sale Invoice?" Style="{StaticResource SectionHeader}" Margin="0,0,0,6" TextWrapping="Wrap"/>
+                    <TextBlock Text="Stock is returned to its batches and the bill's payments are reversed. The invoice number stays used." TextWrapping="Wrap"
+                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,10"/>
+                    <TextBlock Text="REASON (OPTIONAL)" Style="{StaticResource BillingLabel}"/>
+                    <TextBox Text="{Binding DeleteReason, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding ConfirmDeleteCommand}"/>
+                        </TextBox.InputBindings>
+                    </TextBox>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+                        <Button Content="Cancel (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding CancelDeleteCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Delete" Style="{StaticResource DangerButton}" Command="{Binding ConfirmDeleteCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

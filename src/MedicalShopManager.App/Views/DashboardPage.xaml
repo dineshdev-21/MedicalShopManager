@@ -1,0 +1,103 @@
+<UserControl x:Class="MedicalShopManager.App.Views.DashboardPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <TextBlock Style="{StaticResource PageTitle}" Text="Dashboard"/>
+            
+            <!-- KPI Cards Row 1 -->
+            <UniformGrid Rows="1" Columns="5" Margin="0,0,0,16">
+                <!-- Today's Sales -->
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="Today's Sales" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeCaption}"/>
+                        <TextBlock FontSize="{StaticResource FontSizeDisplay}" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,4,0,0">
+                            <Run Text="₹"/><Run Text="{Binding TodaySales, StringFormat=N2, Mode=OneWay}"/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+                <!-- Today's Purchases -->
+                <Border Style="{StaticResource CardStyle}" Margin="4,0">
+                    <StackPanel>
+                        <TextBlock Text="Today's Purchases" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeCaption}"/>
+                        <TextBlock FontSize="{StaticResource FontSizeDisplay}" FontWeight="Bold" Margin="0,4,0,0">
+                            <Run Text="₹"/><Run Text="{Binding TodayPurchases, StringFormat=N2, Mode=OneWay}"/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+                <!-- Gross Profit -->
+                <Border Style="{StaticResource CardStyle}" Margin="4,0">
+                    <StackPanel>
+                        <TextBlock Text="Gross Profit (Est.)" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeCaption}"/>
+                        <TextBlock FontSize="{StaticResource FontSizeDisplay}" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}" Margin="0,4,0,0">
+                            <Run Text="₹"/><Run Text="{Binding TodayGrossProfit, StringFormat=N2, Mode=OneWay}"/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+                <!-- Active Medicines -->
+                <Border Style="{StaticResource CardStyle}" Margin="4,0">
+                    <StackPanel>
+                        <TextBlock Text="Active Medicines" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeCaption}"/>
+                        <TextBlock Text="{Binding TotalActiveMedicines}" FontSize="{StaticResource FontSizeDisplay}" FontWeight="Bold" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+                <!-- Total Stock -->
+                <Border Style="{StaticResource CardStyle}" Margin="8,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Stock Units" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeCaption}"/>
+                        <TextBlock Text="{Binding TotalStockUnits, StringFormat=N0}" FontSize="{StaticResource FontSizeDisplay}" FontWeight="Bold" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- KPI Cards Row 2 -->
+            <UniformGrid Rows="1" Columns="5" Margin="0,0,0,24">
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="Low Stock" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeCaption}"/>
+                        <TextBlock Text="{Binding LowStockCount}" FontSize="{StaticResource FontSizeDisplay}" FontWeight="Bold" Foreground="{StaticResource WarningBrush}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardStyle}" Margin="4,0">
+                    <StackPanel>
+                        <TextBlock Text="Near Expiry" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeCaption}"/>
+                        <TextBlock Text="{Binding NearExpiryCount}" FontSize="{StaticResource FontSizeDisplay}" FontWeight="Bold" Foreground="{StaticResource WarningBrush}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardStyle}" Margin="4,0">
+                    <StackPanel>
+                        <TextBlock Text="Expired" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeCaption}"/>
+                        <TextBlock Text="{Binding ExpiredCount}" FontSize="{StaticResource FontSizeDisplay}" FontWeight="Bold" Foreground="{StaticResource DangerBrush}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardStyle}" Margin="4,0">
+                    <StackPanel>
+                        <TextBlock Text="Supplier Payable" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeCaption}"/>
+                        <TextBlock FontSize="{StaticResource FontSizeDisplay}" FontWeight="Bold" Margin="0,4,0,0">
+                            <Run Text="₹"/><Run Text="{Binding PendingSupplierPayments, StringFormat=N2, Mode=OneWay}"/>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardStyle}" Margin="8,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Today's Bills" Foreground="{StaticResource TextSecondaryBrush}" FontSize="{StaticResource FontSizeCaption}"/>
+                        <TextBlock Text="{Binding TodayBillCount}" FontSize="{StaticResource FontSizeDisplay}" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- Charts Placeholder -->
+            <TextBlock Style="{StaticResource SectionHeader}" Text="Sales Trends"/>
+            <Border Style="{StaticResource CardStyle}" Height="300" Margin="0,0,0,16">
+                <TextBlock Text="📊 Sales chart will be rendered here (LiveCharts)" 
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Foreground="{StaticResource TextTertiaryBrush}"/>
+            </Border>
+
+            <!-- Loading Overlay -->
+            <TextBlock Text="Loading dashboard data..." 
+                       Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}"
+                       HorizontalAlignment="Center" Foreground="{StaticResource TextSecondaryBrush}"/>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

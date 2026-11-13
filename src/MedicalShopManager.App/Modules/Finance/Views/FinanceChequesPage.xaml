@@ -1,0 +1,171 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.Finance.Views.FinanceChequesPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.Finance.ViewModels"
+             xmlns:local="clr-namespace:MedicalShopManager.App.Modules.Finance.Views"
+             mc:Ignorable="d"
+             local:FinanceFocus.KeyboardForm="True"
+             d:DataContext="{d:DesignInstance Type=vm:FinanceChequesViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="FinanceStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
+        <KeyBinding Key="D" Modifiers="Alt" Command="{Binding BeginDepositCommand}"/>
+        <KeyBinding Key="C" Modifiers="Alt" Command="{Binding BeginClearCommand}"/>
+        <KeyBinding Key="B" Modifiers="Alt" Command="{Binding BeginBounceCommand}"/>
+        <KeyBinding Key="Delete" Command="{Binding BeginCancelCommand}"/>
+        <KeyBinding Key="S" Modifiers="Alt" Command="{Binding ConfirmChangeCommand}"/>
+        <KeyBinding Key="Escape" Command="{Binding CloseDialogsCommand}"/>
+    </UserControl.InputBindings>
+
+    <Grid>
+        <DockPanel Margin="0,0,8,0">
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="Refresh (F5)" Style="{StaticResource SecondaryButton}" Command="{Binding RefreshCommand}"/>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="Cheques" Style="{StaticResource PageTitle}" Margin="0"/>
+                    <TextBlock Text="Cheques received and issued. A cheque moves money only when it clears; a bounce reverses the payment."
+                               Style="{StaticResource FinKeyHint}" TextWrapping="Wrap"/>
+                    <TextBlock Text="Alt+D deposit  ·  Alt+C cleared  ·  Alt+B bounced  ·  Del cancel  ·  F5 refresh" Style="{StaticResource FinKeyHint}"/>
+                </StackPanel>
+            </DockPanel>
+
+            <Border DockPanel.Dock="Top" Style="{StaticResource CardStyle}" Padding="12,8" Margin="0,0,0,10">
+                <WrapPanel>
+                    <StackPanel Style="{StaticResource FinField}" Width="230">
+                        <TextBlock Text="SEARCH CHEQUE NO / PARTY / BANK" Style="{StaticResource FinLabel}"/>
+                        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FinInput}" ToolTip="Press Enter to search.">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding RefreshCommand}"/>
+                            </TextBox.InputBindings>
+                        </TextBox>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource FinField}" Width="190">
+                        <TextBlock Text="DIRECTION" Style="{StaticResource FinLabel}"/>
+                        <ComboBox ItemsSource="{Binding Directions}" SelectedItem="{Binding SelectedDirection}" DisplayMemberPath="Label" Height="30"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource FinField}" Width="150">
+                        <TextBlock Text="STATUS" Style="{StaticResource FinLabel}"/>
+                        <ComboBox ItemsSource="{Binding Statuses}" SelectedItem="{Binding SelectedStatus}" DisplayMemberPath="Label" Height="30"/>
+                    </StackPanel>
+                    <CheckBox Content="Open cheques only (all dates)" IsChecked="{Binding OpenOnly}" VerticalAlignment="Center" Margin="0,8,16,0"/>
+                    <StackPanel Style="{StaticResource FinField}" Width="135" Visibility="{Binding ShowDateRange, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="CHEQUE DATE FROM" Style="{StaticResource FinLabel}"/>
+                        <DatePicker SelectedDate="{Binding FromDate}" Height="30"/>
+                    </StackPanel>
+                    <StackPanel Style="{StaticResource FinField}" Width="135" Visibility="{Binding ShowDateRange, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="TO" Style="{StaticResource FinLabel}"/>
+                        <DatePicker SelectedDate="{Binding ToDate}" Height="30"/>
+                    </StackPanel>
+                </WrapPanel>
+            </Border>
+
+            <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                           Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                           Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}"/>
+                <Border Style="{StaticResource CardStyle}" Padding="14,8" Margin="0,4,0,0">
+                    <WrapPanel>
+                        <StackPanel Style="{StaticResource FinFooterItem}">
+                            <TextBlock Text="TO RECEIVE (OPEN, RECEIVED)" Style="{StaticResource FinLabel}"/>
+                            <TextBlock Text="{Binding PendingInPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource FinValue}" Foreground="{StaticResource SuccessBrush}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinFooterItem}">
+                            <TextBlock Text="TO PAY (OPEN, ISSUED)" Style="{StaticResource FinLabel}"/>
+                            <TextBlock Text="{Binding PendingOutPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource FinValue}" Foreground="{StaticResource DangerBrush}"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinFooterItem}">
+                            <TextBlock Text="POST-DATED" Style="{StaticResource FinLabel}"/>
+                            <TextBlock Text="{Binding PostDatedCount}" Style="{StaticResource FinValue}"/>
+                        </StackPanel>
+                    </WrapPanel>
+                </Border>
+            </StackPanel>
+
+            <Border Style="{StaticResource CardStyle}" Padding="0">
+                <Grid>
+                    <DataGrid ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" Style="{StaticResource ModernDataGrid}"
+                              RowStyle="{StaticResource FinStatusRow}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="CHEQUE NO" Binding="{Binding ChequeNumber}" Width="90" FontWeight="SemiBold"/>
+                            <DataGridTextColumn Header="DATED" Binding="{Binding ChequeDate, StringFormat=dd-MM-yy}" Width="75"/>
+                            <DataGridTextColumn Header="DIRECTION" Binding="{Binding DirectionLabel}" Width="80"/>
+                            <DataGridTextColumn Header="PARTY" Binding="{Binding PartyName}" Width="1.5*"/>
+                            <DataGridTextColumn Header="BANK" Binding="{Binding BankName}" Width="1*"/>
+                            <DataGridTextColumn Header="AMOUNT" Binding="{Binding AmountPaisa, Converter={StaticResource PaisaToRupees}}" Width="100" FontWeight="SemiBold"/>
+                            <DataGridTextColumn Header="RECEIPT / PAYMENT" Binding="{Binding VoucherNumber}" Width="125"/>
+                            <DataGridTextColumn Header="ACCOUNT" Binding="{Binding AccountName}" Width="110"/>
+                            <DataGridTextColumn Header="STATUS" Binding="{Binding StatusLabel}" Width="85"/>
+                            <DataGridTextColumn Header="DEPOSITED" Binding="{Binding DepositDate, StringFormat=dd-MM-yy}" Width="75"/>
+                            <DataGridTextColumn Header="CLEARED / BOUNCED" Binding="{Binding ClearedDate, StringFormat=dd-MM-yy}" Width="80"/>
+                            <DataGridTextColumn Header="NOTE" Binding="{Binding StatusNote}" Width="1*"/>
+                            <DataGridTemplateColumn Header="ACTIONS" Width="220">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" Visibility="{Binding IsOpen, Converter={StaticResource BoolToVisibility}}">
+                                            <Button Content="Deposit" Style="{StaticResource SecondaryButton}" Padding="6,2" Margin="0,0,4,0" Focusable="False"
+                                                    Command="{Binding DataContext.BeginDepositCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                            <Button Content="Cleared" Style="{StaticResource PrimaryButton}" Padding="6,2" Margin="0,0,4,0" Focusable="False"
+                                                    Command="{Binding DataContext.BeginClearCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                            <Button Content="Bounced" Style="{StaticResource DangerButton}" Padding="6,2" Focusable="False"
+                                                    Command="{Binding DataContext.BeginBounceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="No cheques" Style="{StaticResource FinEmptyTitle}"/>
+                        <TextBlock Text="Cheques appear here when a receipt or supplier payment is saved with the Cheque mode."
+                                   Style="{StaticResource FinEmptyHint}" MaxWidth="420"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DockPanel>
+
+        <Grid Style="{StaticResource FinOverlay}" Visibility="{Binding IsStatusDialogOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource FinDialogCard}" Width="500" local:FinanceFocus.FocusFirstOnShow="True">
+                <StackPanel>
+                    <TextBlock Text="{Binding StatusDialogTitle}" Style="{StaticResource SectionHeader}" Margin="0,0,0,6"/>
+                    <TextBlock Text="{Binding StatusTarget}" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                    <TextBlock Text="{Binding StatusDialogHint}" TextWrapping="Wrap" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,10"/>
+                    <WrapPanel>
+                        <StackPanel Style="{StaticResource FinField}" Width="140">
+                            <TextBlock Text="DATE *" Style="{StaticResource FinLabel}"/>
+                            <DatePicker SelectedDate="{Binding StatusDate}" Height="30"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinField}" Width="260" Visibility="{Binding StatusNeedsAccount, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="BANK ACCOUNT *" Style="{StaticResource FinLabel}"/>
+                            <ComboBox ItemsSource="{Binding BankAccounts}" SelectedItem="{Binding StatusAccount}" DisplayMemberPath="DisplayName" Height="30"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource FinField}" Width="450">
+                            <TextBlock Text="NOTE / REASON (required for bounce and cancel)" Style="{StaticResource FinLabel}"/>
+                            <TextBox Text="{Binding StatusNote, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FinInput}" MaxLength="250">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Enter" Command="{Binding ConfirmChangeCommand}"/>
+                                </TextBox.InputBindings>
+                            </TextBox>
+                        </StackPanel>
+                    </WrapPanel>
+                    <ItemsControl ItemsSource="{Binding DialogErrors}" Style="{StaticResource FinErrorList}"
+                                  Visibility="{Binding HasDialogErrors, Converter={StaticResource BoolToVisibility}}"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <Button Content="Close (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding CloseDialogsCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Save (Alt+S)" Style="{StaticResource PrimaryButton}" Command="{Binding ConfirmChangeCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

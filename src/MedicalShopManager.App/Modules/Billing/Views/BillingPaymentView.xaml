@@ -1,0 +1,168 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.Billing.Views.BillingPaymentView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.Billing.ViewModels"
+             xmlns:views="clr-namespace:MedicalShopManager.App.Modules.Billing.Views"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:BillingPaymentViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="BillingStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="F2" Command="{Binding ContinueCommand}"/>
+        <KeyBinding Key="Escape" Command="{Binding BackCommand}"/>
+    </UserControl.InputBindings>
+
+    <Border Style="{StaticResource BillingDialogCard}" Width="620">
+        <StackPanel views:BillingFocus.KeyboardForm="True">
+            <DockPanel Margin="0,0,0,10">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Content="{Binding ContinueLabel}" Style="{StaticResource PrimaryButton}" Command="{Binding ContinueCommand}" Margin="0,0,8,0" IsTabStop="False"/>
+                    <Button Content="✕" Command="{Binding CloseCommand}" Style="{StaticResource BillingLinkButton}" IsTabStop="False" ToolTip="Close"/>
+                </StackPanel>
+                <TextBlock Text="{Binding StepTitle}" Style="{StaticResource SectionHeader}" Margin="0" VerticalAlignment="Center"/>
+            </DockPanel>
+
+            <!-- Bill facts -->
+            <UniformGrid Columns="3" Margin="0,0,0,10">
+                <StackPanel>
+                    <TextBlock Text="PAYING CUSTOMER" Style="{StaticResource BillingLabel}"/>
+                    <TextBlock Text="{Binding PayingCustomer}" Style="{StaticResource BillingValue}"/>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="INVOICE NUMBER" Style="{StaticResource BillingLabel}"/>
+                    <TextBlock Text="{Binding InvoiceNumber}" Style="{StaticResource BillingValue}"/>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="INVOICE DATE" Style="{StaticResource BillingLabel}"/>
+                    <TextBlock Text="{Binding InvoiceDate, StringFormat=dd/MM/yyyy}" Style="{StaticResource BillingValue}"/>
+                </StackPanel>
+            </UniformGrid>
+
+            <!-- Step 1: credit vs paid -->
+            <StackPanel x:Name="Step1Panel" Visibility="{Binding IsStep1, Converter={StaticResource BoolToVisibility}}" views:BillingFocus.FocusFirstOnShow="True">
+                <TextBlock Text="CUSTOMER HAS" Style="{StaticResource BillingLabel}"/>
+                <CheckBox Content="PAID / CASH  (untick for UNPAID / CREDIT)" IsChecked="{Binding IsPaid}" IsEnabled="{Binding CanChooseCredit}" Margin="0,0,0,10"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Style="{StaticResource BillingField}" Visibility="{Binding IsPaid, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="AMOUNT PAID ₹ *" Style="{StaticResource BillingLabel}"/>
+                        <TextBox Text="{Binding AmountPaid, UpdateSourceTrigger=LostFocus, StringFormat=0.##}" Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Style="{StaticResource BillingField}" Visibility="{Binding ShowDueDate, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="PAYMENT DUE DATE *" Style="{StaticResource BillingLabel}"/>
+                        <DatePicker SelectedDate="{Binding DueDate}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Style="{StaticResource BillingField}" Visibility="{Binding ShowDueDate, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="DUE DAYS" Style="{StaticResource BillingLabel}"/>
+                        <TextBlock Text="{Binding DueDaysLabel}" Style="{StaticResource BillingValue}"/>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+
+            <!-- Step 2: payment modes (split) -->
+            <StackPanel Visibility="{Binding IsStep2, Converter={StaticResource BoolToVisibility}}" views:BillingFocus.FocusFirstOnShow="True">
+                <TextBlock Text="Enter the amount received in each mode; Enter on a mode puts the rest there. A single mode is the usual case."
+                           FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                <ItemsControl ItemsSource="{Binding Tenders}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="160"/>
+                                    <ColumnDefinition Width="160"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding Label}" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                                <TextBox Grid.Column="1" Text="{Binding Amount, UpdateSourceTrigger=LostFocus, StringFormat=0.##}" Style="{StaticResource ModernTextBox}">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Key="Space" Modifiers="Control"
+                                                    Command="{Binding DataContext.AssignRemainingCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Margin="0,6,0,0" FontSize="12">
+                    <Run Text="Still to allocate: ₹"/><Run Text="{Binding Remaining, Mode=OneWay, StringFormat=N2}" FontWeight="SemiBold"/>
+                    <Run Text="   (Ctrl+Space in a mode puts the rest there)" Foreground="{StaticResource TextTertiaryBrush}"/>
+                </TextBlock>
+            </StackPanel>
+
+            <!-- Step 3: references, cash and change -->
+            <StackPanel Visibility="{Binding IsStep3, Converter={StaticResource BoolToVisibility}}" views:BillingFocus.FocusFirstOnShow="True">
+                <ItemsControl ItemsSource="{Binding UsedReferenceTenders}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,2,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Margin="0,0,10,0">
+                                    <TextBlock Style="{StaticResource BillingLabel}"><Run Text="{Binding Label, Mode=OneWay}"/><Run Text=" — "/><Run Text="{Binding ReferenceLabel, Mode=OneWay}"/></TextBlock>
+                                    <TextBox Text="{Binding Reference, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Visibility="{Binding IsCheque, Converter={StaticResource BoolToVisibility}}">
+                                    <TextBlock Text="CHEQUE DATE" Style="{StaticResource BillingLabel}"/>
+                                    <DatePicker SelectedDate="{Binding ChequeDate}"/>
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Grid Visibility="{Binding HasCash, Converter={StaticResource BoolToVisibility}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,10,0">
+                        <TextBlock Text="CASH RECEIVED ₹" Style="{StaticResource BillingLabel}"/>
+                        <TextBox Text="{Binding CashTendered, UpdateSourceTrigger=LostFocus, StringFormat=0.##}" Style="{StaticResource ModernTextBox}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="CHANGE TO RETURN" Style="{StaticResource BillingLabel}"/>
+                        <TextBlock Text="{Binding Change, StringFormat=₹{0:N2}}" FontSize="20" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}"/>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+
+            <!-- Summary -->
+            <Border Background="{StaticResource BackgroundBrush}" CornerRadius="4" Padding="10,6" Margin="0,12,0,0">
+                <UniformGrid Columns="3">
+                    <StackPanel>
+                        <TextBlock Text="PAYABLE AMT" Style="{StaticResource BillingLabel}"/>
+                        <TextBlock Text="{Binding Payable, StringFormat=₹{0:N2}}" Style="{StaticResource BillingValue}"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="PAYING NOW" Style="{StaticResource BillingLabel}"/>
+                        <TextBlock Text="{Binding PayingNow, StringFormat=₹{0:N2}}" Style="{StaticResource BillingValue}" Foreground="{StaticResource SuccessBrush}"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="BALANCE DUE" Style="{StaticResource BillingLabel}"/>
+                        <TextBlock Text="{Binding BalanceDue, StringFormat=₹{0:N2}}" Style="{StaticResource BillingValue}" Foreground="{StaticResource DangerBrush}"/>
+                    </StackPanel>
+                </UniformGrid>
+            </Border>
+
+            <ItemsControl ItemsSource="{Binding Errors}" Style="{StaticResource BillingErrorList}"
+                          Visibility="{Binding HasErrors, Converter={StaticResource BoolToVisibility}}"/>
+            <DockPanel Margin="0,10,0,0">
+                <Button DockPanel.Dock="Right" Content="{Binding ContinueLabel}" Style="{StaticResource PrimaryButton}" Command="{Binding ContinueCommand}"/>
+                <Button DockPanel.Dock="Right" Content="Back (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding BackCommand}" Margin="0,0,8,0"/>
+                <TextBlock Text="Save / Continue - F2 | Next field - Enter | Back - Esc" FontSize="11" Foreground="{StaticResource TextTertiaryBrush}" VerticalAlignment="Center"/>
+            </DockPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

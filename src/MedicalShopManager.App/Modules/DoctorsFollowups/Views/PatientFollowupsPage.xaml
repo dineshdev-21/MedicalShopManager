@@ -1,0 +1,479 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.DoctorsFollowups.Views.PatientFollowupsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.DoctorsFollowups.ViewModels"
+             xmlns:local="clr-namespace:MedicalShopManager.App.Modules.DoctorsFollowups.Views"
+             mc:Ignorable="d"
+             local:DoctorsFollowupsFocus.KeyboardForm="True"
+             d:DataContext="{d:DesignInstance Type=vm:PatientFollowupsViewModel}">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="DoctorsFollowupsStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="F2" Command="{Binding MarkDoneCommand}"/>
+        <KeyBinding Key="F3" Command="{Binding BeginSnoozeCommand}"/>
+        <KeyBinding Key="F4" Command="{Binding BeginManualCommand}"/>
+        <KeyBinding Key="F5" Command="{Binding RegenerateAndRefreshCommand}"/>
+        <KeyBinding Key="F6" Command="{Binding ShowRecommendationsCommand}"/>
+        <KeyBinding Key="F7" Command="{Binding OpenRefillRulesCommand}"/>
+        <KeyBinding Key="W" Modifiers="Control" Command="{Binding BuildMessageCommand}"/>
+        <KeyBinding Key="P" Modifiers="Control" Command="{Binding PrintCommand}"/>
+        <KeyBinding Key="Escape" Command="{Binding CloseDialogsCommand}"/>
+    </UserControl.InputBindings>
+
+    <Grid>
+        <DockPanel Margin="0,0,8,0">
+            <!-- Title and page actions -->
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="Recommended (F6)" Style="{StaticResource SecondaryButton}" Command="{Binding ShowRecommendationsCommand}" Margin="0,0,8,0"/>
+                    <Button Content="Refill rules (F7)" Style="{StaticResource SecondaryButton}" Command="{Binding OpenRefillRulesCommand}" Margin="0,0,8,0"/>
+                    <Button Content="Print (Ctrl+P)" Style="{StaticResource SecondaryButton}" Command="{Binding PrintCommand}" Margin="0,0,8,0"/>
+                    <Button Content="Refresh (F5)" Style="{StaticResource SecondaryButton}" Command="{Binding RegenerateAndRefreshCommand}" Margin="0,0,8,0"/>
+                    <Button Content="+ Add follow-up (F4)" Style="{StaticResource PrimaryButton}" Command="{Binding BeginManualCommand}"/>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="Patient Follow-ups" Style="{StaticResource PageTitle}" Margin="0"/>
+                    <TextBlock Text="{Binding BucketSummary}" Style="{StaticResource DfKeyHint}"/>
+                </StackPanel>
+            </DockPanel>
+
+            <Border DockPanel.Dock="Top" Background="{StaticResource WarningBgBrush}" CornerRadius="6" Padding="10,6" Margin="0,0,0,8"
+                    Visibility="{Binding IsDisabled, Converter={StaticResource BoolToVisibility}}">
+                <TextBlock Text="Patient reminders are switched off in Control Center ▸ Sale Settings: bills do not create follow-ups. Reminders added by hand still work."
+                           TextWrapping="Wrap" Foreground="{StaticResource TextPrimaryBrush}"/>
+            </Border>
+
+            <!-- Tabs -->
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+                <RadioButton GroupName="DfFollowupTabs" Content="{Binding ArrivingLabel}" IsChecked="{Binding IsArrivingTab}" Style="{StaticResource DfTabButton}"/>
+                <RadioButton GroupName="DfFollowupTabs" Content="{Binding ExpiredLabel}" IsChecked="{Binding IsExpiredTab}" Style="{StaticResource DfTabButton}"/>
+                <RadioButton GroupName="DfFollowupTabs" Content="{Binding ActionedLabel}" IsChecked="{Binding IsActionedTab}" Style="{StaticResource DfTabButton}"/>
+                <RadioButton GroupName="DfFollowupTabs" Content="{Binding AllLabel}" IsChecked="{Binding IsAllTab}" Style="{StaticResource DfTabButton}"/>
+            </StackPanel>
+
+            <!-- Filters -->
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                <Button DockPanel.Dock="Right" Content="Reset" Style="{StaticResource SecondaryButton}" Command="{Binding ResetFiltersCommand}" Margin="8,0,0,0"/>
+                <ComboBox DockPanel.Dock="Right" ItemsSource="{Binding Sorts}" SelectedItem="{Binding SelectedSort}" DisplayMemberPath="Label"
+                          Width="210" Height="32" Margin="8,0,0,0" ToolTip="Sort by"/>
+                <ComboBox DockPanel.Dock="Right" ItemsSource="{Binding Genders}" SelectedItem="{Binding SelectedGender}" DisplayMemberPath="Label"
+                          Width="120" Height="32" Margin="8,0,0,0" ToolTip="Gender"/>
+                <Border DockPanel.Dock="Right" Background="{StaticResource InfoBgBrush}" CornerRadius="14" Padding="10,4" Margin="8,0,0,0"
+                        VerticalAlignment="Center" Visibility="{Binding HasCustomerFilter, Converter={StaticResource BoolToVisibility}}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Customer: " Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding CustomerFilterName}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <Button Content="✕" Command="{Binding ClearCustomerFilterCommand}" Padding="4,0" BorderThickness="0" Background="Transparent"
+                                Cursor="Hand" ToolTip="Show every customer"/>
+                    </StackPanel>
+                </Border>
+                <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfInput}" Height="32"
+                         ToolTip="Search by customer name or mobile, patient, medicine or composition"/>
+            </DockPanel>
+
+            <!-- Status and actions on the ticked / selected reminders -->
+            <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                <DockPanel Margin="0,0,0,6">
+                    <CheckBox DockPanel.Dock="Left" Content="{Binding CheckedLabel}" IsChecked="{Binding AllChecked}" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Content="Reminder text / WhatsApp (Ctrl+W)" Style="{StaticResource SecondaryButton}" Command="{Binding BuildMessageCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Snooze (F3)" Style="{StaticResource SecondaryButton}" Command="{Binding BeginSnoozeCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Dismiss (Del)" Style="{StaticResource SecondaryButton}" Command="{Binding BeginDismissCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Reopen" Style="{StaticResource SecondaryButton}" Command="{Binding ReopenCommand}" Margin="0,0,8,0"
+                                Visibility="{Binding IsSelectedClosed, Converter={StaticResource BoolToVisibility}}"/>
+                        <Button Content="Followed up (F2)" Style="{StaticResource PrimaryButton}" Command="{Binding MarkDoneCommand}"/>
+                    </StackPanel>
+                </DockPanel>
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                           Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" FontWeight="SemiBold" TextWrapping="Wrap"
+                           Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}"/>
+                <TextBlock Text="Space tick  ·  F2 followed up  ·  Ctrl+W reminder text and WhatsApp link (nothing is sent)  ·  F3 snooze  ·  Del dismiss  ·  F4 add  ·  F6 recommended  ·  F7 refill rules"
+                           Style="{StaticResource DfKeyHint}" Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <!-- Detail of the selected follow-up -->
+            <Border DockPanel.Dock="Right" Width="340" Style="{StaticResource CardStyle}" Padding="14,10" Margin="10,0,0,0"
+                    Visibility="{Binding HasSelection, Converter={StaticResource BoolToVisibility}}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
+                    <StackPanel>
+                        <!-- Customer card -->
+                        <DockPanel Margin="0,0,0,8">
+                            <Border Style="{StaticResource DfAvatar}" DockPanel.Dock="Left">
+                                <TextBlock Text="{Binding Selected.Initials}" Style="{StaticResource DfAvatarText}"/>
+                            </Border>
+                            <StackPanel>
+                                <TextBlock Text="{Binding Selected.PatientDisplay}" Style="{StaticResource DfValue}" FontSize="14"/>
+                                <TextBlock Style="{StaticResource DfKeyHint}">
+                                    <Run Text="{Binding Selected.CustomerName, Mode=OneWay}"/><Run Text="  ·  "/><Run Text="{Binding Selected.PhoneDisplay, Mode=OneWay}"/><Run Text="  "/><Run Text="{Binding Selected.GenderLabel, Mode=OneWay}"/>
+                                </TextBlock>
+                            </StackPanel>
+                        </DockPanel>
+                        <WrapPanel Margin="0,0,0,8" Visibility="{Binding CustomerSummary, Converter={StaticResource NullToVisibility}}">
+                            <Border Style="{StaticResource DfMetric}" Margin="0,0,6,6">
+                                <StackPanel>
+                                    <TextBlock Text="BILLS" Style="{StaticResource DfLabel}"/>
+                                    <TextBlock Text="{Binding CustomerSummary.SalesCount}" Style="{StaticResource DfValue}"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource DfMetric}" Margin="0,0,6,6">
+                                <StackPanel>
+                                    <TextBlock Text="TOTAL SALES" Style="{StaticResource DfLabel}"/>
+                                    <TextBlock Text="{Binding CustomerSummary.TotalSalesPaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource DfValue}"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource DfMetric}" Margin="0,0,6,6">
+                                <StackPanel>
+                                    <TextBlock Text="AVG. BILL" Style="{StaticResource DfLabel}"/>
+                                    <TextBlock Text="{Binding CustomerSummary.AverageOrderValuePaisa, Converter={StaticResource PaisaToRupees}}" Style="{StaticResource DfValue}"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource DfMetric}" Margin="0,0,6,6">
+                                <StackPanel>
+                                    <TextBlock Text="REVISITS EVERY" Style="{StaticResource DfLabel}"/>
+                                    <TextBlock Text="{Binding CustomerSummary.RevisitLabel}" Style="{StaticResource DfValue}"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource DfMetric}" Margin="0,0,6,6">
+                                <StackPanel>
+                                    <TextBlock Text="LAST BILL" Style="{StaticResource DfLabel}"/>
+                                    <TextBlock Text="{Binding CustomerSummary.LastSaleDate, StringFormat=dd-MM-yyyy, TargetNullValue=-}" Style="{StaticResource DfValue}"/>
+                                </StackPanel>
+                            </Border>
+                        </WrapPanel>
+                        <Button Content="Only this customer's follow-ups" Style="{StaticResource SecondaryButton}" Command="{Binding FilterToSelectedCustomerCommand}"
+                                HorizontalAlignment="Left" Margin="0,0,0,10" IsTabStop="False"
+                                Visibility="{Binding HasCustomerFilter, Converter={StaticResource InverseBoolToVisibility}}"/>
+
+                        <!-- Medicine and refill -->
+                        <TextBlock Text="{Binding Selected.ItemDisplay}" Style="{StaticResource DfSectionTitle}" TextWrapping="Wrap"/>
+                        <TextBlock Style="{StaticResource DfKeyHint}">
+                            <Run Text="Bought "/><Run Text="{Binding Selected.QuantityDisplay, Mode=OneWay}"/><Run Text=" on "/><Run Text="{Binding Selected.SaleDate, StringFormat=dd-MM-yyyy, Mode=OneWay}"/><Run Text="  ·  bill "/><Run Text="{Binding Selected.SaleReference, Mode=OneWay}"/>
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource DfKeyHint}">
+                            <Run Text="{Binding Selected.RemainingDisplay, Mode=OneWay}"/><Run Text="  ·  refill due "/><Run Text="{Binding Selected.DueDate, StringFormat=dd-MM-yyyy, Mode=OneWay}"/>
+                        </TextBlock>
+                        <TextBlock Text="{Binding Selected.DueLabel}" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}" Margin="0,2,0,0"/>
+                        <TextBlock Text="{Binding Selected.StatusReason}" Style="{StaticResource DfKeyHint}"
+                                   Visibility="{Binding Selected.StatusReason, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0" Visibility="{Binding Selected.IsSnoozed, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Style="{StaticResource DfKeyHint}">
+                                <Run Text="Snoozed until "/><Run Text="{Binding Selected.SnoozedUntil, StringFormat=dd-MM-yyyy, Mode=OneWay}"/>
+                            </TextBlock>
+                            <Button Content="Remove snooze" Command="{Binding ClearSnoozeCommand}" Margin="8,0,0,0" Padding="6,0" IsTabStop="False"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0" Visibility="{Binding IsSelectedPending, Converter={StaticResource BoolToVisibility}}">
+                            <StackPanel>
+                                <TextBlock Text="CONSUMPTION (UNITS / DAY)" Style="{StaticResource DfLabel}"/>
+                                <TextBox Text="{Binding Consumption, UpdateSourceTrigger=LostFocus, StringFormat=0.##}" Style="{StaticResource DfNumberInput}" Width="110"
+                                         ToolTip="Changes the refill date of this reminder; kept when the bill is read again">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Key="Enter" Command="{Binding SaveConsumptionCommand}"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                            </StackPanel>
+                            <Button Content="Save" Style="{StaticResource SecondaryButton}" Command="{Binding SaveConsumptionCommand}" VerticalAlignment="Bottom" Margin="8,0,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <TextBlock Text="Was this reminder useful?" Style="{StaticResource DfKeyHint}" Margin="0,0,8,0"/>
+                            <Button Content="Helpful" Command="{Binding MarkHelpfulCommand}" Padding="8,2" Margin="0,0,6,0" IsTabStop="False"/>
+                            <Button Content="Not helpful" Command="{Binding MarkNotHelpfulCommand}" Padding="8,2" IsTabStop="False"/>
+                            <TextBlock Text="{Binding Selected.HelpfulLabel}" FontWeight="SemiBold" Foreground="{StaticResource SuccessBrush}" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        </StackPanel>
+
+                        <!-- Remarks -->
+                        <TextBlock Text="Remarks" Style="{StaticResource DfSectionTitle}" Margin="0,14,0,4"/>
+                        <TextBox Text="{Binding NewNoteText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfInput}" MaxLength="1000"
+                                 ToolTip="Add follow-up remarks or post an update; Enter posts. F2 saves the text with 'Followed up'.">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding AddNoteCommand}"/>
+                            </TextBox.InputBindings>
+                        </TextBox>
+                        <StackPanel Margin="0,6,0,0" Visibility="{Binding EditingNote, Converter={StaticResource NullToVisibility}}">
+                            <TextBlock Text="EDIT REMARK" Style="{StaticResource DfLabel}"/>
+                            <TextBox Text="{Binding EditingNoteText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfInput}" MaxLength="1000">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Enter" Command="{Binding SaveNoteCommand}"/>
+                                </TextBox.InputBindings>
+                            </TextBox>
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                <Button Content="Save remark" Command="{Binding SaveNoteCommand}" Padding="8,2" Margin="0,0,6,0"/>
+                                <Button Content="Cancel" Command="{Binding CancelEditNoteCommand}" Padding="8,2"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <ItemsControl ItemsSource="{Binding Notes}" Margin="0,8,0,0" IsTabStop="False">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <DockPanel Margin="0,0,0,8">
+                                        <Border Style="{StaticResource DfAvatar}" Width="26" Height="26" CornerRadius="13" DockPanel.Dock="Left">
+                                            <TextBlock Text="{Binding Initials}" Style="{StaticResource DfAvatarText}" FontSize="10"/>
+                                        </Border>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Note}" TextWrapping="Wrap" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Style="{StaticResource DfKeyHint}">
+                                                    <Run Text="{Binding AuthorDisplay, Mode=OneWay}"/><Run Text="  ·  "/><Run Text="{Binding CreatedAt, StringFormat=dd-MM-yy HH:mm, Mode=OneWay}"/>
+                                                </TextBlock>
+                                                <TextBlock Text="  (edited)" Style="{StaticResource DfKeyHint}" Visibility="{Binding IsEdited, Converter={StaticResource BoolToVisibility}}"/>
+                                                <Button Content="Edit" Padding="4,0" Margin="8,0,0,0" FontSize="11" IsTabStop="False" BorderThickness="0" Background="Transparent"
+                                                        Foreground="{StaticResource TextLinkBrush}" Cursor="Hand" CommandParameter="{Binding}"
+                                                        Command="{Binding DataContext.BeginEditNoteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                                <Button Content="Delete" Padding="4,0" Margin="4,0,0,0" FontSize="11" IsTabStop="False" BorderThickness="0" Background="Transparent"
+                                                        Foreground="{StaticResource DangerBrush}" Cursor="Hand" CommandParameter="{Binding}"
+                                                        Command="{Binding DataContext.DeleteNoteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Reminder list -->
+            <Border Style="{StaticResource CardStyle}" Padding="0">
+                <Grid>
+                    <DataGrid ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" Style="{StaticResource ModernDataGrid}"
+                              RowStyle="{StaticResource DfFollowupRow}" AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
+                        <DataGrid.InputBindings>
+                            <KeyBinding Key="Space" Command="{Binding ToggleCheckedCommand}"/>
+                            <KeyBinding Key="Delete" Command="{Binding BeginDismissCommand}"/>
+                            <KeyBinding Key="Enter" Command="{Binding BuildMessageCommand}"/>
+                        </DataGrid.InputBindings>
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="" Width="34">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsChecked, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center" IsTabStop="False" Focusable="False"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="PATIENT" Binding="{Binding Followup.PatientDisplay}" Width="1.4*" FontWeight="SemiBold"/>
+                            <DataGridTextColumn Header="MOBILE" Binding="{Binding Followup.PhoneDisplay}" Width="105"/>
+                            <DataGridTextColumn Header="MEDICINE" Binding="{Binding Followup.ItemDisplay}" Width="2*"/>
+                            <DataGridTextColumn Header="LAST SALE" Binding="{Binding Followup.SaleDate, StringFormat=dd-MM-yy}" Width="80"/>
+                            <DataGridTextColumn Header="QTY" Binding="{Binding Followup.QuantityUnits}" Width="55"/>
+                            <DataGridTextColumn Header="PER DAY" Binding="{Binding Followup.UnitsPerDay, StringFormat=0.##}" Width="65"/>
+                            <DataGridTextColumn Header="FOLLOW-UP ON" Binding="{Binding Followup.DueDate, StringFormat=dd-MM-yy}" Width="100"/>
+                            <DataGridTextColumn Header="STATUS" Binding="{Binding Followup.DueLabel}" Width="150"/>
+                            <DataGridTextColumn Header="REMARKS" Binding="{Binding Followup.NoteCount}" Width="70"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="{Binding EmptyTitle}" Style="{StaticResource DfEmptyTitle}"/>
+                        <TextBlock Text="{Binding EmptyHint}" Style="{StaticResource DfEmptyHint}" MaxWidth="480" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </DockPanel>
+
+        <!-- Reminder text, WhatsApp link, call -->
+        <Grid Style="{StaticResource DfOverlay}" Visibility="{Binding IsMessageOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource DfDialogCard}" Width="620" local:DoctorsFollowupsFocus.FocusFirstOnShow="True">
+                <StackPanel>
+                    <TextBlock Text="Refill reminder" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                    <TextBlock Style="{StaticResource DfKeyHint}" Margin="0,0,0,8">
+                        <Run Text="For "/><Run Text="{Binding Message.PatientName, Mode=OneWay}" FontWeight="SemiBold"/><Run Text="  ·  mobile "/><Run Text="{Binding Message.Mobile, Mode=OneWay, TargetNullValue='not available'}"/><Run Text="  ·  the app does not send anything: copy the text or the link."/>
+                    </TextBlock>
+                    <TextBlock Text="MESSAGE" Style="{StaticResource DfLabel}"/>
+                    <TextBox Text="{Binding Message.Message, Mode=OneWay}" Style="{StaticResource DfMultiline}" IsReadOnly="True" Height="190"
+                             VerticalScrollBarVisibility="Auto"/>
+                    <TextBlock Text="WHATSAPP LINK" Style="{StaticResource DfLabel}" Margin="0,8,0,2"/>
+                    <TextBox Text="{Binding Message.WhatsAppLink, Mode=OneWay, TargetNullValue='No valid mobile number on the customer.'}" Style="{StaticResource DfInput}"
+                             IsReadOnly="True"/>
+                    <TextBlock Text="CALL" Style="{StaticResource DfLabel}" Margin="0,8,0,2"/>
+                    <TextBox Text="{Binding Message.CallLink, Mode=OneWay, TargetNullValue='No valid phone number on the customer.'}" Style="{StaticResource DfInput}"
+                             IsReadOnly="True"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <Button Content="Close (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding CloseDialogsCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Copy number" Style="{StaticResource SecondaryButton}" Command="{Binding CopyPhoneCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Copy WhatsApp link" Style="{StaticResource SecondaryButton}" Command="{Binding CopyWhatsAppLinkCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Copy text" Style="{StaticResource PrimaryButton}" Command="{Binding CopyMessageCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Snooze -->
+        <Grid Style="{StaticResource DfOverlay}" Visibility="{Binding IsSnoozeOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource DfDialogCard}" Width="420" local:DoctorsFollowupsFocus.FocusFirstOnShow="True">
+                <Border.InputBindings>
+                    <KeyBinding Key="S" Modifiers="Alt" Command="{Binding ConfirmSnoozeCommand}"/>
+                </Border.InputBindings>
+                <StackPanel>
+                    <TextBlock Text="Snooze reminder" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                    <TextBlock Text="{Binding Selected.ItemDisplay}" Style="{StaticResource DfKeyHint}" Margin="0,0,0,8"/>
+                    <TextBlock Text="REMIND AGAIN ON" Style="{StaticResource DfLabel}"/>
+                    <DatePicker SelectedDate="{Binding SnoozeDate}" Height="30"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                        <Button Content="Tomorrow" Command="{Binding SnoozeDaysCommand}" CommandParameter="1" Padding="8,2" Margin="0,0,6,0"/>
+                        <Button Content="3 days" Command="{Binding SnoozeDaysCommand}" CommandParameter="3" Padding="8,2" Margin="0,0,6,0"/>
+                        <Button Content="1 week" Command="{Binding SnoozeDaysCommand}" CommandParameter="7" Padding="8,2" Margin="0,0,6,0"/>
+                        <Button Content="15 days" Command="{Binding SnoozeDaysCommand}" CommandParameter="15" Padding="8,2"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding DialogError}" Foreground="{StaticResource DangerBrush}" TextWrapping="Wrap" Margin="0,8,0,0"
+                               Visibility="{Binding DialogError, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <Button Content="Cancel (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding CloseDialogsCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Snooze (Alt+S)" Style="{StaticResource PrimaryButton}" Command="{Binding ConfirmSnoozeCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Dismiss -->
+        <Grid Style="{StaticResource DfOverlay}" Visibility="{Binding IsDismissOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource DfDialogCard}" Width="460" local:DoctorsFollowupsFocus.FocusFirstOnShow="True">
+                <Border.InputBindings>
+                    <KeyBinding Key="S" Modifiers="Alt" Command="{Binding ConfirmDismissCommand}"/>
+                </Border.InputBindings>
+                <StackPanel>
+                    <TextBlock Text="Dismiss reminder" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                    <TextBlock Text="The ticked (or selected) reminders stop. A new bill of the medicine creates a new reminder."
+                               Style="{StaticResource DfKeyHint}" Margin="0,0,0,8"/>
+                    <TextBlock Text="REASON *" Style="{StaticResource DfLabel}"/>
+                    <TextBox Text="{Binding DismissReason, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfInput}" MaxLength="200"
+                             ToolTip="e.g. therapy stopped, patient moved, buys elsewhere">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding ConfirmDismissCommand}"/>
+                        </TextBox.InputBindings>
+                    </TextBox>
+                    <TextBlock Text="{Binding DialogError}" Foreground="{StaticResource DangerBrush}" TextWrapping="Wrap" Margin="0,8,0,0"
+                               Visibility="{Binding DialogError, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                        <Button Content="Cancel (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding CloseDialogsCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Dismiss (Alt+S)" Style="{StaticResource DangerButton}" Command="{Binding ConfirmDismissCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Manual follow-up -->
+        <Grid Style="{StaticResource DfOverlay}" Visibility="{Binding IsManualOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource DfDialogCard}" Width="640" local:DoctorsFollowupsFocus.FocusFirstOnShow="True">
+                <Border.InputBindings>
+                    <KeyBinding Key="S" Modifiers="Alt" Command="{Binding SaveManualCommand}"/>
+                </Border.InputBindings>
+                <StackPanel>
+                    <TextBlock Text="Add follow-up" Style="{StaticResource SectionHeader}" Margin="0,0,0,10"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Grid.Column="0" Style="{StaticResource DfField}">
+                            <TextBlock Text="FIND CUSTOMER (NAME OR MOBILE) *" Style="{StaticResource DfLabel}"/>
+                            <TextBox Text="{Binding CustomerSearchText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfInput}" MaxLength="100"/>
+                            <ComboBox ItemsSource="{Binding CustomerOptions}" SelectedItem="{Binding ManualCustomer}" DisplayMemberPath="Label" Height="30" Margin="0,4,0,0"
+                                      ToolTip="Customers matching the text above"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="0" Grid.Column="1" Style="{StaticResource DfField}">
+                            <TextBlock Text="FIND MEDICINE (NAME OR COMPOSITION) *" Style="{StaticResource DfLabel}"/>
+                            <TextBox Text="{Binding ItemSearchText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfInput}" MaxLength="100"/>
+                            <ComboBox ItemsSource="{Binding ItemOptions}" SelectedItem="{Binding ManualItem}" DisplayMemberPath="Label" Height="30" Margin="0,4,0,0"
+                                      ToolTip="Medicines matching the text above"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="0" Style="{StaticResource DfField}">
+                            <TextBlock Text="PATIENT NAME (IF NOT THE CUSTOMER)" Style="{StaticResource DfLabel}"/>
+                            <TextBox Text="{Binding ManualPatientName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfInput}" MaxLength="100"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="1" Style="{StaticResource DfField}">
+                            <TextBlock Text="BOUGHT / STARTED ON" Style="{StaticResource DfLabel}"/>
+                            <DatePicker SelectedDate="{Binding ManualStartDate}" Height="30"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2" Grid.Column="0" Style="{StaticResource DfField}">
+                            <TextBlock Text="UNITS BOUGHT (TABLETS, ML …) *" Style="{StaticResource DfLabel}"/>
+                            <TextBox Text="{Binding ManualUnits, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfNumberInput}" MaxLength="6"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="2" Grid.Column="1" Style="{StaticResource DfField}">
+                            <TextBlock Text="CONSUMPTION (UNITS PER DAY) *" Style="{StaticResource DfLabel}"/>
+                            <TextBox Text="{Binding ManualUnitsPerDay, UpdateSourceTrigger=LostFocus, StringFormat=0.##}" Style="{StaticResource DfNumberInput}" MaxLength="6"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Style="{StaticResource DfField}">
+                            <TextBlock Text="REMARK" Style="{StaticResource DfLabel}"/>
+                            <TextBox Text="{Binding ManualNote, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource DfInput}" MaxLength="1000"/>
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock Text="{Binding ManualPreview}" FontWeight="SemiBold" Foreground="{StaticResource PrimaryBrush}"
+                               Visibility="{Binding ManualPreview, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                    <ItemsControl ItemsSource="{Binding ManualErrors}" Style="{StaticResource DfErrorList}" IsTabStop="False"
+                                  Visibility="{Binding HasManualErrors, Converter={StaticResource BoolToVisibility}}"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                        <Button Content="Cancel (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding CloseDialogsCommand}" Margin="0,0,8,0"/>
+                        <Button Content="Save (Alt+S)" Style="{StaticResource PrimaryButton}" Command="{Binding SaveManualCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Recommended reminders -->
+        <Grid Style="{StaticResource DfOverlay}" Visibility="{Binding IsRecommendationsOpen, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource DfDialogCard}" Width="900" MaxHeight="560" local:DoctorsFollowupsFocus.FocusFirstOnShow="True">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top">
+                        <TextBlock Text="Recommended reminders" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+                        <TextBlock Text="Customers who keep buying a medicine that is not marked for refill reminders. Enter (or double-click) adds the reminder."
+                                   Style="{StaticResource DfKeyHint}" Margin="0,0,0,8"/>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Bottom" Margin="0,10,0,0">
+                        <TextBlock Text="{Binding DialogError}" Foreground="{StaticResource DangerBrush}" TextWrapping="Wrap" Margin="0,0,0,6"
+                                   Visibility="{Binding DialogError, Converter={StaticResource StringNotEmptyToVisibility}}"/>
+                        <DockPanel>
+                            <CheckBox DockPanel.Dock="Left" Content="Also remind for future bills of this medicine (marks it in the refill rules)"
+                                      IsChecked="{Binding AlwaysRemind}" VerticalAlignment="Center"/>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Content="Close (Esc)" Style="{StaticResource SecondaryButton}" Command="{Binding CloseDialogsCommand}" Margin="0,0,8,0"/>
+                                <Button Content="Add reminder (Enter)" Style="{StaticResource PrimaryButton}" Command="{Binding AcceptRecommendationCommand}"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </StackPanel>
+                    <Grid MinHeight="220">
+                        <DataGrid ItemsSource="{Binding Recommendations}" SelectedItem="{Binding SelectedRecommendation}" Style="{StaticResource ModernDataGrid}"
+                                  AutoGenerateColumns="False" IsReadOnly="True" SelectionMode="Single">
+                            <DataGrid.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding AcceptRecommendationCommand}"/>
+                                <MouseBinding Gesture="LeftDoubleClick" Command="{Binding AcceptRecommendationCommand}"/>
+                            </DataGrid.InputBindings>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="PATIENT" Binding="{Binding PatientDisplay}" Width="1.3*" FontWeight="SemiBold"/>
+                                <DataGridTextColumn Header="MOBILE" Binding="{Binding Phone}" Width="100"/>
+                                <DataGridTextColumn Header="MEDICINE" Binding="{Binding ItemDisplay}" Width="2*"/>
+                                <DataGridTextColumn Header="PATTERN" Binding="{Binding PatternLabel}" Width="1.6*"/>
+                                <DataGridTextColumn Header="LAST BOUGHT" Binding="{Binding LastPurchase, StringFormat=dd-MM-yy}" Width="90"/>
+                                <DataGridTextColumn Header="PER DAY" Binding="{Binding SuggestedUnitsPerDay, StringFormat=0.##}" Width="65"/>
+                                <DataGridTextColumn Header="DUE" Binding="{Binding SuggestedDueDate, StringFormat=dd-MM-yy}" Width="80"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Visibility="{Binding HasRecommendations, Converter={StaticResource InverseBoolToVisibility}}">
+                            <TextBlock Text="No recommendations right now" Style="{StaticResource DfEmptyTitle}"/>
+                            <TextBlock Text="A reminder is suggested once a named customer has bought the same medicine at least twice at a steady interval."
+                                       Style="{StaticResource DfEmptyHint}" MaxWidth="440" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Grid>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

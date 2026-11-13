@@ -1,0 +1,168 @@
+<UserControl x:Class="MedicalShopManager.App.Modules.Stock.Views.StockBulkUpdatePage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:MedicalShopManager.App.Modules.Stock.ViewModels"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:StockBulkUpdateViewModel}">
+    <UserControl.InputBindings>
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
+        <KeyBinding Key="S" Modifiers="Alt" Command="{Binding ApplyCommand}"/>
+        <KeyBinding Key="Escape" Command="{Binding CancelConfirmCommand}"/>
+    </UserControl.InputBindings>
+    <UserControl.Resources>
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,2"/>
+        </Style>
+        <Style x:Key="Cell" TargetType="StackPanel">
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+    </UserControl.Resources>
+
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+            <TextBlock Text="Bulk Update Settings" Style="{StaticResource PageTitle}"/>
+            <TextBlock Text="Filter items, tick the ones to change and set the values below. Blank fields stay unchanged; all changes save together."
+                       Foreground="{StaticResource TextTertiaryBrush}" FontSize="11"/>
+        </StackPanel>
+
+        <Border DockPanel.Dock="Top" Background="{StaticResource SuccessBgBrush}" CornerRadius="4" Padding="8,4" Margin="0,0,0,8"
+                Visibility="{Binding StatusMessage, Converter={StaticResource StringNotEmptyToVisibility}}">
+            <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource SuccessBrush}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+        </Border>
+        <Border DockPanel.Dock="Top" Background="{StaticResource DangerBgBrush}" CornerRadius="4" Padding="8,4" Margin="0,0,0,8"
+                Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}">
+            <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource DangerBrush}" TextWrapping="Wrap"/>
+        </Border>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="300"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Items -->
+            <Border Style="{StaticResource CardStyle}" Padding="12">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Delay=200}" Style="{StaticResource ModernTextBox}" Margin="0,0,6,0" TabIndex="1"
+                                 ToolTip="Search name, composition, company, barcode or rack"/>
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding FilterOptions}" SelectedItem="{Binding SelectedFilter}" DisplayMemberPath="Label" Margin="0,0,6,0" TabIndex="2"/>
+                        <ComboBox Grid.Column="2" ItemsSource="{Binding ScheduleOptions}" SelectedItem="{Binding SelectedScheduleFilter}" DisplayMemberPath="Label" Margin="0,0,6,0" TabIndex="3"/>
+                        <ComboBox Grid.Column="3" ItemsSource="{Binding Manufacturers}" SelectedItem="{Binding SelectedManufacturer}" IsTextSearchEnabled="True" TabIndex="4"/>
+                    </Grid>
+                    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                            <Button Content="Select all" Command="{Binding SelectAllCommand}" Style="{StaticResource SecondaryButton}" Padding="10,2" Margin="0,0,6,0" TabIndex="5">
+                                <Button.CommandParameter><sys:Boolean>True</sys:Boolean></Button.CommandParameter>
+                            </Button>
+                            <Button Content="Select none" Command="{Binding SelectAllCommand}" Style="{StaticResource SecondaryButton}" Padding="10,2" TabIndex="6">
+                                <Button.CommandParameter><sys:Boolean>False</sys:Boolean></Button.CommandParameter>
+                            </Button>
+                        </StackPanel>
+                        <TextBlock Text="{Binding SelectionText}" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                    </DockPanel>
+                    <Grid>
+                        <DataGrid ItemsSource="{Binding Items}" Style="{StaticResource ModernDataGrid}" AutoGenerateColumns="False"
+                                  CanUserAddRows="False" CanUserDeleteRows="False" EnableRowVirtualization="True" TabIndex="7">
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn Header="✓" Width="34">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="Item" Binding="{Binding Item.Name, Mode=OneWay}" IsReadOnly="True" Width="2*"/>
+                                <DataGridTextColumn Header="Company" Binding="{Binding Item.Manufacturer, Mode=OneWay}" IsReadOnly="True" Width="*"/>
+                                <DataGridTextColumn Header="Category" Binding="{Binding Item.Category, Mode=OneWay}" IsReadOnly="True" Width="80"/>
+                                <DataGridTextColumn Header="HSN" Binding="{Binding Item.HsnCode, Mode=OneWay}" IsReadOnly="True" Width="75"/>
+                                <DataGridTextColumn Header="GST %" Binding="{Binding Item.GstRatePercent, Mode=OneWay, StringFormat='0.##'}" IsReadOnly="True" Width="50"/>
+                                <DataGridTextColumn Header="Rack" Binding="{Binding Item.RackLocation, Mode=OneWay}" IsReadOnly="True" Width="60"/>
+                                <DataGridTextColumn Header="Min" Binding="{Binding Item.MinStock, Mode=OneWay}" IsReadOnly="True" Width="45"/>
+                                <DataGridTextColumn Header="Sch" Binding="{Binding Item.ScheduleLabel, Mode=OneWay}" IsReadOnly="True" Width="55"/>
+                                <DataGridTextColumn Header="Stock" Binding="{Binding Item.StockDisplay, Mode=OneWay}" IsReadOnly="True" Width="65"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <TextBlock Text="No items match the filters." Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   Visibility="{Binding HasItems, Converter={StaticResource InverseBoolToVisibility}}"/>
+                    </Grid>
+                </DockPanel>
+            </Border>
+
+            <!-- Values to set -->
+            <Border Grid.Column="2" Style="{StaticResource CardStyle}" Padding="14">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <TextBlock Text="Set on selected items" Style="{StaticResource SectionHeader}" Margin="0,0,0,10"/>
+                        <StackPanel Style="{StaticResource Cell}">
+                            <TextBlock Text="GST % (0, 5, 12, 18, 28)" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding GstText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" TabIndex="10"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource Cell}">
+                            <TextBlock Text="HSN code" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding HsnText, UpdateSourceTrigger=PropertyChanged}" MaxLength="8" Style="{StaticResource ModernTextBox}" TabIndex="11"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource Cell}">
+                            <TextBlock Text="Rack / location" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding RackText, UpdateSourceTrigger=PropertyChanged}" MaxLength="30" Style="{StaticResource ModernTextBox}" TabIndex="12"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource Cell}">
+                            <TextBlock Text="Min stock (units)" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding MinStockText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" TabIndex="13"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource Cell}">
+                            <TextBlock Text="Max stock (units)" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding MaxStockText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" TabIndex="14"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource Cell}">
+                            <TextBlock Text="Max discount %" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding MaxDiscountText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" TabIndex="15"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource Cell}">
+                            <TextBlock Text="Schedule" Style="{StaticResource FieldLabel}"/>
+                            <ComboBox ItemsSource="{Binding NewScheduleOptions}" SelectedItem="{Binding NewSchedule}" DisplayMemberPath="Label" Height="34" TabIndex="16"/>
+                        </StackPanel>
+                        <StackPanel Style="{StaticResource Cell}">
+                            <TextBlock Text="Category" Style="{StaticResource FieldLabel}"/>
+                            <TextBox Text="{Binding CategoryText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource ModernTextBox}" TabIndex="17"/>
+                        </StackPanel>
+
+                        <Border Background="{StaticResource WarningBgBrush}" CornerRadius="4" Padding="8" Margin="0,4,0,8"
+                                Visibility="{Binding IsConfirming, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="{Binding ConfirmText}" TextWrapping="Wrap" FontWeight="SemiBold"/>
+                        </Border>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="Cancel (Esc)" Command="{Binding CancelConfirmCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0" TabIndex="19"
+                                    Visibility="{Binding IsConfirming, Converter={StaticResource BoolToVisibility}}"/>
+                            <Button Command="{Binding ApplyCommand}" TabIndex="18">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+                                        <Setter Property="Content" Value="Apply (Alt+S)"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsConfirming}" Value="True">
+                                                <Setter Property="Content" Value="Confirm (Alt+S)"/>
+                                                <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </DockPanel>
+</UserControl>
