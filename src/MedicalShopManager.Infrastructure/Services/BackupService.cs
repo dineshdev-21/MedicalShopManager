@@ -267,7 +267,9 @@ public class BackupService : IBackupService
             var cs = new SqliteConnectionStringBuilder
             {
                 DataSource = dbFilePath,
-                Mode = SqliteOpenMode.ReadOnly
+                Mode = SqliteOpenMode.ReadOnly,
+                // Windows keeps a pooled connection's file locked, which breaks the temp-file delete after backup.
+                Pooling = false
             }.ToString();
 
             using var conn = new SqliteConnection(cs);
